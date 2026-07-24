@@ -1,0 +1,15 @@
+/Users/mikeward/.copilot/repos/copilot-worktrees/SDK_template/mward-msft1-musical-goggles/template/dotnet/bin/Debug/net8.0/AgnosticAgentTemplate
+/Users/mikeward/.copilot/repos/copilot-worktrees/SDK_template/mward-msft1-musical-goggles/template/dotnet/bin/Debug/net8.0/AgnosticAgentTemplate.deps.json
+/Users/mikeward/.copilot/repos/copilot-worktrees/SDK_template/mward-msft1-musical-goggles/template/dotnet/bin/Debug/net8.0/AgnosticAgentTemplate.runtimeconfig.json
+/Users/mikeward/.copilot/repos/copilot-worktrees/SDK_template/mward-msft1-musical-goggles/template/dotnet/bin/Debug/net8.0/AgnosticAgentTemplate.dll
+/Users/mikeward/.copilot/repos/copilot-worktrees/SDK_template/mward-msft1-musical-goggles/template/dotnet/bin/Debug/net8.0/AgnosticAgentTemplate.pdb
+/Users/mikeward/.copilot/repos/copilot-worktrees/SDK_template/mward-msft1-musical-goggles/template/dotnet/obj/Debug/net8.0/AgnosticAgentTemplate.GeneratedMSBuildEditorConfig.editorconfig
+/Users/mikeward/.copilot/repos/copilot-worktrees/SDK_template/mward-msft1-musical-goggles/template/dotnet/obj/Debug/net8.0/AgnosticAgentTemplate.AssemblyInfoInputs.cache
+/Users/mikeward/.copilot/repos/copilot-worktrees/SDK_template/mward-msft1-musical-goggles/template/dotnet/obj/Debug/net8.0/AgnosticAgentTemplate.AssemblyInfo.cs
+/Users/mikeward/.copilot/repos/copilot-worktrees/SDK_template/mward-msft1-musical-goggles/template/dotnet/obj/Debug/net8.0/AgnosticAgentTemplate.csproj.CoreCompileInputs.cache
+/Users/mikeward/.copilot/repos/copilot-worktrees/SDK_template/mward-msft1-musical-goggles/template/dotnet/obj/Debug/net8.0/AgnosticAgentTemplate.sourcelink.json
+/Users/mikeward/.copilot/repos/copilot-worktrees/SDK_template/mward-msft1-musical-goggles/template/dotnet/obj/Debug/net8.0/AgnosticAgentTemplate.dll
+/Users/mikeward/.copilot/repos/copilot-worktrees/SDK_template/mward-msft1-musical-goggles/template/dotnet/obj/Debug/net8.0/refint/AgnosticAgentTemplate.dll
+/Users/mikeward/.copilot/repos/copilot-worktrees/SDK_template/mward-msft1-musical-goggles/template/dotnet/obj/Debug/net8.0/AgnosticAgentTemplate.pdb
+/Users/mikeward/.copilot/repos/copilot-worktrees/SDK_template/mward-msft1-musical-goggles/template/dotnet/obj/Debug/net8.0/AgnosticAgentTemplate.genruntimeconfig.cache
+/Users/mikeward/.copilot/repos/copilot-worktrees/SDK_template/mward-msft1-musical-goggles/template/dotnet/obj/Debug/net8.0/ref/AgnosticAgentTemplate.dll

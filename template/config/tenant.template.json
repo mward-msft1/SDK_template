@@ -1,0 +1,37 @@
+{
+  "tenant": {
+    "tenantId": "00000000-0000-0000-0000-000000000000",
+    "displayName": "Contoso",
+    "environment": "dev"
+  },
+  "agentRegistration": {
+    "agentName": "ContosoAgnosticAgent",
+    "agentRuntime": "agent-framework",
+    "applicationId": "00000000-0000-0000-0000-000000000000"
+  },
+  "m365AgentsSdk": {
+    "botAppId": "00000000-0000-0000-0000-000000000000",
+    "tenantId": "00000000-0000-0000-0000-000000000000",
+    "channelTargets": [
+      "Teams",
+      "Microsoft365Copilot",
+      "Webchat"
+    ]
+  },
+  "agent365": {
+    "applicationId": "00000000-0000-0000-0000-000000000000",
+    "reportingEndpoint": "https://REPLACE_WITH_AGENT365_ENDPOINT",
+    "eventNamespace": "contoso.agents"
+  },
+  "purview": {
+    "applicationLocationId": "00000000-0000-0000-0000-000000000000",
+    "activities": [
+      "uploadText",
+      "downloadText"
+    ],
+    "executionDefaults": {
+      "blockOnMatch": true,
+      "auditWhenNoScope": true
+    }
+  }
+}
