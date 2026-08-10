@@ -5,5 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node ./src/exampleRunner.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1101.0"
   }
 }

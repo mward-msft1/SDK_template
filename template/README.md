@@ -3,6 +3,7 @@
 This is a **beginner template** showing where to interject **Agent365 SDK** and **Purview API** calls in either:
 - **Microsoft Agent Framework** (`microsoft/agent-framework`)
 - **Microsoft 365 Agents SDK** (`microsoft/agents`)
+- **Amazon Bedrock** direct model inference (`Converse`)
 
 You can keep one policy + reporting pattern, then swap host SDKs.
 
@@ -37,6 +38,7 @@ You get both:
 | C#/.NET (`dotnet/`) | .NET SDK 8.0+ |
 | Rust (`rust/`) | Rust stable toolchain (`cargo`) |
 | Go (`go/`) | Go 1.22+ |
+| Amazon Bedrock (`src/`) | Node.js 20+, AWS SDK credentials, Bedrock model access |
 
 ## One-time setup for all templates
 
@@ -48,6 +50,7 @@ You get both:
 3. Choose host SDK in `.env`:
    - `HOST_SDK=agent-framework`
    - `HOST_SDK=m365-agents-sdk`
+   - `HOST_SDK=bedrock`
 4. Keep Purview IDs aligned:
    - `.env` → `PURVIEW_APP_LOCATION_ID`
    - `purview/Create-DlpPolicyForCustomAIApps.template.ps1` → `$Applications`
@@ -83,6 +86,7 @@ Think of each message as a pipeline:
 Set `HOST_SDK` in `.env`:
 - `agent-framework`
 - `m365-agents-sdk`
+- `bedrock`
 
 Then wire the matching adapter in `src/framework/hostAdapters.js`.
 For Python, wire it in `python/host_adapters.py`.
@@ -222,3 +226,7 @@ Edit first:
 - `go/host_adapters.go`
 
 If you use another runtime, keep the same middleware order and only replace runtime-specific wiring.
+
+## Amazon Bedrock
+
+For a complete copy-paste PowerShell setup, IAM policy template, architecture flow, and current Agent 365 and Purview SDK/API guidance, see [`bedrock/README.md`](bedrock/README.md).
