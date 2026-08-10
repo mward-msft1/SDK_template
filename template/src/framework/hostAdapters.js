@@ -42,3 +42,12 @@ export async function runWithM365AgentsSdk({ middleware }) {
 
   return middleware(context, next);
 }
+
+export async function runWithBedrock({ middleware, bedrock, config }) {
+  const context = {
+    userId: config.defaultUserId,
+    inputText: config.bedrockPrompt
+  };
+
+  return middleware(context, (governedContext) => bedrock.invoke(governedContext));
+}
