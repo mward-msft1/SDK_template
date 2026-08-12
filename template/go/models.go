@@ -4,6 +4,7 @@ type TurnContext struct {
 	TurnID    string
 	UserID    string
 	InputText string
+	AuthorizationHeader string
 }
 
 type ModelResult struct {

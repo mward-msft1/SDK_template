@@ -11,7 +11,8 @@ export async function runWithAgentFramework({ middleware }) {
   const context = {
     turnId: "replace-with-runtime-turn-id",
     userId: "replace-with-user-object-id",
-    inputText: "Hello from Agent Framework host"
+    inputText: "Hello from Agent Framework host",
+    authorizationHeader: ""
   };
 
   // TODO: Replace with your real model/agent invoke function.
@@ -32,7 +33,8 @@ export async function runWithM365AgentsSdk({ middleware }) {
   const context = {
     turnId: "replace-with-activity-id",
     userId: "replace-with-entra-object-id",
-    inputText: "Hello from Microsoft 365 Agents SDK host"
+    inputText: "Hello from Microsoft 365 Agents SDK host",
+    authorizationHeader: "replace-with-current-request-authorization-header"
   };
 
   // TODO: Replace with your AI invocation (OpenAI/Azure OpenAI/other).

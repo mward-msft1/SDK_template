@@ -6,6 +6,7 @@ struct Context {
   std::string turnId;
   std::string userId;
   std::string inputText;
+  std::string authorizationHeader;
 };
 
 struct ModelResult {

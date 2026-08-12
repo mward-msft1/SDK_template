@@ -16,10 +16,15 @@ GovernedMiddleware createGovernedAgentMiddleware(
     }
 
     agent365.reportTurnStart(context);
-    (void)purview.computeProtectionScopes(context.userId);
+    (void)purview.computeProtectionScopes(
+        context.userId, context.authorizationHeader);
 
     const std::string inbound = purview.evaluateContent(
-        context.userId, "uploadText", context.inputText, context.turnId);
+        context.userId,
+        "uploadText",
+        context.inputText,
+        context.turnId,
+        context.authorizationHeader);
     const Decision inboundDecision = purview.getEnforcementDecision(inbound);
     agent365.reportPurviewDecision(context, "pre-model", inboundDecision);
     if (inboundDecision.block) {
@@ -32,7 +37,11 @@ GovernedMiddleware createGovernedAgentMiddleware(
 
     const ModelResult modelResult = next(context);
     const std::string outbound = purview.evaluateContent(
-        context.userId, "downloadText", modelResult.outputText, context.turnId);
+        context.userId,
+        "downloadText",
+        modelResult.outputText,
+        context.turnId,
+        context.authorizationHeader);
     const Decision outboundDecision = purview.getEnforcementDecision(outbound);
     agent365.reportPurviewDecision(context, "post-model", outboundDecision);
 

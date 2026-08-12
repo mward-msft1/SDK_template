@@ -5,6 +5,7 @@ This folder is the C#/.NET version of the same template pipeline used in JavaScr
 ## Files
 
 - `Config.cs` - reads required placeholders from environment variables.
+- `EntraSidecarClient.cs` - gets autonomous or OBO authorization headers from the local Entra Agent ID sidecar.
 - `Models.cs` - shared context/result models.
 - `Agent365Adapter.cs` - TODO points for Agent365 SDK reporting hooks.
 - `PurviewAdapter.cs` - Purview Graph placeholder calls and decision parsing.
@@ -18,8 +19,11 @@ From `template/`:
 
 ```bash
 cp .env.example .env
+# Edit .env and replace the four Entra sidecar values before continuing.
+cp entra-sidecar/.env.example entra-sidecar/.env
+docker compose --env-file entra-sidecar/.env -f entra-sidecar/docker-compose.yml up -d
 set -a && source .env && set +a
 dotnet run --project ./dotnet/AgnosticAgentTemplate.csproj
 ```
 
-Before running, replace TODO placeholders in `Agent365Adapter.cs`, `PurviewAdapter.cs`, and `HostAdapters.cs`.
+Before starting Compose, fill the blueprint values in `entra-sidecar/.env` and `AGENT_CLIENT_ID` in `.env`. Keeping these files separate prevents the blueprint secret from entering the agent process. The Purview adapter automatically uses the sidecar when `ENTRA_SIDECAR_ENABLED=true`. See `../entra-sidecar/README.md` for autonomous and OBO examples.

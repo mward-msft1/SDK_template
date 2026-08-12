@@ -1,18 +1,28 @@
 use crate::config::AppConfig;
+use crate::entra_sidecar_client::{normalize_authorization_header, EntraSidecarClient};
 use crate::models::Decision;
 
 #[derive(Clone, Debug)]
 pub struct PurviewAdapter {
     config: AppConfig,
+    entra_sidecar: EntraSidecarClient,
 }
 
 impl PurviewAdapter {
     pub fn new(config: AppConfig) -> Self {
-        Self { config }
+        Self {
+            entra_sidecar: EntraSidecarClient::new(config.clone()),
+            config,
+        }
     }
 
-    pub fn compute_protection_scopes(&self, user_id: &str) -> Result<String, String> {
-        self.ensure_graph_token()?;
+    pub fn compute_protection_scopes(
+        &self,
+        user_id: &str,
+        incoming_authorization_header: &str,
+    ) -> Result<String, String> {
+        let _authorization =
+            self.graph_authorization_header(incoming_authorization_header)?;
         // TODO: Replace with real Graph call:
         // POST /users/{id}/dataSecurityAndGovernance/protectionScopes/compute
         Ok(format!(
@@ -27,8 +37,10 @@ impl PurviewAdapter {
         activity: &str,
         content: &str,
         context_id: &str,
+        incoming_authorization_header: &str,
     ) -> Result<String, String> {
-        self.ensure_graph_token()?;
+        let _authorization =
+            self.graph_authorization_header(incoming_authorization_header)?;
         // TODO: Replace with real Graph call:
         // POST /users/{id}/dataSecurityAndGovernance/activities/contentActivities
         Ok(format!(
@@ -43,13 +55,20 @@ impl PurviewAdapter {
         }
     }
 
-    fn ensure_graph_token(&self) -> Result<(), String> {
+    fn graph_authorization_header(
+        &self,
+        incoming_authorization_header: &str,
+    ) -> Result<String, String> {
+        if self.config.entra_sidecar_enabled {
+            return self
+                .entra_sidecar
+                .get_authorization_header(incoming_authorization_header);
+        }
         if self.config.graph_access_token_placeholder.trim().is_empty() {
             return Err(
-                "Missing GRAPH_ACCESS_TOKEN_PLACEHOLDER. Replace token acquisition TODO in PurviewAdapter."
-                    .to_string(),
+                "Enable the Entra sidecar or set GRAPH_ACCESS_TOKEN_PLACEHOLDER.".to_string(),
             );
         }
-        Ok(())
+        normalize_authorization_header(&self.config.graph_access_token_placeholder)
     }
 }

@@ -5,7 +5,8 @@ ModelResult runWithAgentFramework(const GovernedMiddleware& middleware, const st
   Context context{
       "replace-with-runtime-turn-id",
       defaultUserId,
-      "Hello from Agent Framework host"};
+      "Hello from Agent Framework host",
+      ""};
 
   // TODO: Replace with your real model/agent invoke function.
   NextFunction next = [](const Context&) {
@@ -22,7 +23,8 @@ ModelResult runWithM365AgentsSdk(const GovernedMiddleware& middleware, const std
   Context context{
       "replace-with-activity-id",
       defaultUserId,
-      "Hello from Microsoft 365 Agents SDK host"};
+      "Hello from Microsoft 365 Agents SDK host",
+      "replace-with-current-request-authorization-header"};
 
   // TODO: Replace with your AI invocation (OpenAI/Azure OpenAI/other).
   NextFunction next = [](const Context&) {

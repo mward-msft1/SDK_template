@@ -5,6 +5,7 @@ public sealed class TurnContext
     public string TurnId { get; set; } = "";
     public string UserId { get; set; } = "";
     public string InputText { get; set; } = "";
+    public string AuthorizationHeader { get; set; } = "";
 }
 
 public sealed class ModelResult

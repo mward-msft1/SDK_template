@@ -1,0 +1,18 @@
+services:
+  entra-agent-id-sidecar:
+    image: mcr.microsoft.com/entra-sdk/auth-sidecar:1.0.0
+    container_name: entra-agent-id-sidecar
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5000
+      AzureAd__Instance: https://login.microsoftonline.com/
+      AzureAd__TenantId: ${TENANT_ID:?Set TENANT_ID in entra-sidecar/.env}
+      AzureAd__ClientId: ${BLUEPRINT_APP_ID:?Set BLUEPRINT_APP_ID in entra-sidecar/.env}
+      AzureAd__ClientCredentials__0__SourceType: ClientSecret
+      AzureAd__ClientCredentials__0__ClientSecret: ${BLUEPRINT_CLIENT_SECRET:?Set BLUEPRINT_CLIENT_SECRET in entra-sidecar/.env}
+      DownstreamApis__Graph__BaseUrl: https://graph.microsoft.com/v1.0/
+      DownstreamApis__Graph__Scopes: https://graph.microsoft.com/.default
+      DownstreamApis__Graph__RequestAppToken: "true"

@@ -14,7 +14,10 @@ def create_governed_agent_middleware(purview, agent365, config):
 
         await agent365.report_turn_start(context)
 
-        scopes = await purview.compute_protection_scopes(user_id)
+        incoming_authorization_header = context.get("authorization_header", "")
+        scopes = await purview.compute_protection_scopes(
+            user_id, incoming_authorization_header
+        )
         context["purview_scopes"] = scopes
 
         inbound_result = await purview.evaluate_content(
@@ -22,6 +25,7 @@ def create_governed_agent_middleware(purview, agent365, config):
             activity="uploadText",
             content=context["input_text"],
             context_id=context["turn_id"],
+            incoming_authorization_header=incoming_authorization_header,
         )
         inbound_decision = purview.get_enforcement_decision(inbound_result)
         await agent365.report_purview_decision(context, "pre-model", inbound_decision)
@@ -38,6 +42,7 @@ def create_governed_agent_middleware(purview, agent365, config):
             activity="downloadText",
             content=model_result["output_text"],
             context_id=context["turn_id"],
+            incoming_authorization_header=incoming_authorization_header,
         )
         outbound_decision = purview.get_enforcement_decision(outbound_result)
         await agent365.report_purview_decision(context, "post-model", outbound_decision)

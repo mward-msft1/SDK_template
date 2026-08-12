@@ -5,6 +5,11 @@ pub struct AppConfig {
     pub tenant_id: String,
     pub entra_client_id: String,
     pub entra_client_secret: String,
+    pub entra_sidecar_enabled: bool,
+    pub entra_sidecar_url: String,
+    pub entra_sidecar_service_name: String,
+    pub entra_sidecar_auth_mode: String,
+    pub entra_agent_client_id: String,
     pub default_user_id: String,
     pub agent_name: String,
     pub host_sdk: String,
@@ -31,7 +36,10 @@ fn required(name: &str) -> Result<String, String> {
 }
 
 fn optional(name: &str, fallback: &str) -> String {
-    env::var(name).ok().filter(|v| !v.trim().is_empty()).unwrap_or_else(|| fallback.to_string())
+    env::var(name)
+        .ok()
+        .filter(|v| !v.trim().is_empty())
+        .unwrap_or_else(|| fallback.to_string())
 }
 
 fn as_bool(name: &str, fallback: &str) -> bool {
@@ -39,10 +47,20 @@ fn as_bool(name: &str, fallback: &str) -> bool {
 }
 
 pub fn load_config() -> Result<AppConfig, String> {
+    let sidecar_enabled = as_bool("ENTRA_SIDECAR_ENABLED", "true");
     Ok(AppConfig {
         tenant_id: required("TENANT_ID")?,
         entra_client_id: required("ENTRA_CLIENT_ID")?,
         entra_client_secret: required("ENTRA_CLIENT_SECRET")?,
+        entra_sidecar_enabled: sidecar_enabled,
+        entra_sidecar_url: optional("ENTRA_SIDECAR_URL", "http://localhost:5000"),
+        entra_sidecar_service_name: optional("ENTRA_SIDECAR_SERVICE_NAME", "Graph"),
+        entra_sidecar_auth_mode: optional("ENTRA_SIDECAR_AUTH_MODE", "autonomous"),
+        entra_agent_client_id: if sidecar_enabled {
+            required("AGENT_CLIENT_ID")?
+        } else {
+            optional("AGENT_CLIENT_ID", "")
+        },
         default_user_id: optional("DEFAULT_USER_ID", ""),
         agent_name: optional("AGENT_NAME", "ContosoAgnosticAgent"),
         host_sdk: optional("HOST_SDK", "agent-framework"),
@@ -53,7 +71,10 @@ pub fn load_config() -> Result<AppConfig, String> {
         agent365_app_secret: required("AGENT365_APP_SECRET")?,
         agent365_tenant_id: required("AGENT365_TENANT_ID")?,
         agent365_reporting_endpoint: required("AGENT365_REPORTING_ENDPOINT")?,
-        purview_graph_base_url: optional("PURVIEW_GRAPH_BASE_URL", "https://graph.microsoft.com/v1.0"),
+        purview_graph_base_url: optional(
+            "PURVIEW_GRAPH_BASE_URL",
+            "https://graph.microsoft.com/v1.0",
+        ),
         purview_app_location_id: required("PURVIEW_APP_LOCATION_ID")?,
         purview_activity_types: optional("PURVIEW_ACTIVITY_TYPES", "uploadText,downloadText"),
         purview_enable_audit_when_no_scope: as_bool("PURVIEW_ENABLE_AUDIT_WHEN_NO_SCOPE", "true"),

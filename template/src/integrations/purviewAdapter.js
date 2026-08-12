@@ -1,3 +1,5 @@
+import { EntraSidecarClient } from "./entraSidecarClient.js";
+
 function parseActivities(raw) {
   return raw
     .split(",")
@@ -8,16 +10,16 @@ function parseActivities(raw) {
 export class PurviewAdapter {
   constructor(config) {
     this.config = config;
+    this.entraSidecar = new EntraSidecarClient(config);
   }
 
-  async computeProtectionScopes(userId) {
+  async computeProtectionScopes(userId, incomingAuthorizationHeader = "") {
     const activities = parseActivities(this.config.purviewActivityTypes).join(",");
-
     const response = await fetch(
       `${this.config.purviewGraphBaseUrl}/users/${userId}/dataSecurityAndGovernance/protectionScopes/compute`,
       {
         method: "POST",
-        headers: await this.#authHeaders(),
+        headers: await this.#authHeaders(incomingAuthorizationHeader),
         body: JSON.stringify({
           activities,
           locations: [
@@ -33,16 +35,21 @@ export class PurviewAdapter {
     if (!response.ok) {
       throw new Error(`Purview computeProtectionScopes failed: ${response.status}`);
     }
-
     return response.json();
   }
 
-  async evaluateContent({ userId, activity, content, contextId }) {
+  async evaluateContent({
+    userId,
+    activity,
+    content,
+    contextId,
+    incomingAuthorizationHeader = ""
+  }) {
     const response = await fetch(
       `${this.config.purviewGraphBaseUrl}/users/${userId}/dataSecurityAndGovernance/activities/contentActivities`,
       {
         method: "POST",
-        headers: await this.#authHeaders(),
+        headers: await this.#authHeaders(incomingAuthorizationHeader),
         body: JSON.stringify({
           activity,
           contentToProcess: {
@@ -64,12 +71,10 @@ export class PurviewAdapter {
     if (!response.ok) {
       throw new Error(`Purview evaluateContent failed: ${response.status}`);
     }
-
     return response.json();
   }
 
   getEnforcementDecision(result) {
-    // Placeholder parser: adapt this for the exact Graph response shape your tenant returns.
     const isBlocked = JSON.stringify(result).toLowerCase().includes("block");
     return {
       block: isBlocked,
@@ -77,16 +82,25 @@ export class PurviewAdapter {
     };
   }
 
-  async #authHeaders() {
-    // TODO: Replace with your tenant's token acquisition flow (MSAL, managed identity, etc.).
-    // Must return a Graph token with Purview permissions (for example: Content.Process.User, ProtectionScopes.Compute.User).
-    const token = this.config.graphAccessTokenPlaceholder;
+  async #authHeaders(incomingAuthorizationHeader) {
+    if (this.config.entraSidecarEnabled) {
+      return {
+        Authorization: await this.entraSidecar.getAuthorizationHeader(
+          incomingAuthorizationHeader
+        ),
+        "Content-Type": "application/json"
+      };
+    }
+
+    const token = this.config.graphAccessTokenPlaceholder?.trim();
     if (!token) {
-      throw new Error("Missing graphAccessTokenPlaceholder. Replace token acquisition TODO.");
+      throw new Error(
+        "Enable the Entra sidecar or set GRAPH_ACCESS_TOKEN_PLACEHOLDER."
+      );
     }
 
     return {
-      Authorization: `Bearer ${token}`,
+      Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}`,
       "Content-Type": "application/json"
     };
   }

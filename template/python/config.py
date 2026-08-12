@@ -13,10 +13,20 @@ def as_bool(name: str, default: str = "true") -> bool:
 
 
 def load_config() -> dict:
+    sidecar_enabled = as_bool("ENTRA_SIDECAR_ENABLED", "true")
     return {
         "tenant_id": required("TENANT_ID"),
         "entra_client_id": required("ENTRA_CLIENT_ID"),
         "entra_client_secret": required("ENTRA_CLIENT_SECRET"),
+        "entra_sidecar_enabled": sidecar_enabled,
+        "entra_sidecar_url": os.getenv("ENTRA_SIDECAR_URL", "http://localhost:5000"),
+        "entra_sidecar_service_name": os.getenv("ENTRA_SIDECAR_SERVICE_NAME", "Graph"),
+        "entra_sidecar_auth_mode": os.getenv("ENTRA_SIDECAR_AUTH_MODE", "autonomous"),
+        "entra_agent_client_id": (
+            required("AGENT_CLIENT_ID")
+            if sidecar_enabled
+            else os.getenv("AGENT_CLIENT_ID", "")
+        ),
         "default_user_id": os.getenv("DEFAULT_USER_ID", ""),
         "agent_name": os.getenv("AGENT_NAME", "ContosoAgnosticAgent"),
         "agent_runtime": os.getenv("AGENT_RUNTIME", "agent-framework"),
@@ -35,6 +45,6 @@ def load_config() -> dict:
         "purview_activity_types": os.getenv("PURVIEW_ACTIVITY_TYPES", "uploadText,downloadText"),
         "purview_enable_audit_when_no_scope": as_bool("PURVIEW_ENABLE_AUDIT_WHEN_NO_SCOPE", "true"),
         "purview_block_on_error": as_bool("PURVIEW_BLOCK_ON_ERROR", "true"),
-        # Placeholder until replaced with MSAL / managed identity.
+        # Manual fallback when the Entra sidecar is disabled.
         "graph_access_token_placeholder": os.getenv("GRAPH_ACCESS_TOKEN_PLACEHOLDER", ""),
     }

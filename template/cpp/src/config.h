@@ -6,6 +6,11 @@ struct AppConfig {
   std::string tenantId;
   std::string entraClientId;
   std::string entraClientSecret;
+  bool entraSidecarEnabled = true;
+  std::string entraSidecarUrl;
+  std::string entraSidecarServiceName;
+  std::string entraSidecarAuthMode;
+  std::string entraAgentClientId;
   std::string defaultUserId;
   std::string agentName;
   std::string hostSdk;

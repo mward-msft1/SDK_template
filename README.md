@@ -6,6 +6,7 @@ A **beginner-friendly, agnostic agent template** showing how to inject:
 3. **Agent 365 SDK** observability hooks
 4. **Microsoft Purview (Graph) policy evaluation**
 5. **Amazon Bedrock** model inference through the `Converse` API
+6. **Microsoft Entra Agent ID auth sidecar** for autonomous and OBO tokens
 
 The goal is to give you a portable starter you can adapt to Python, .NET, or Node runtimes while keeping all tenant-bound values as explicit placeholders.
 
@@ -29,6 +30,8 @@ Use `template/README.md` as the source of truth for:
 - `template/src/framework/hostAdapters.js` - where to connect the middleware to Agent Framework **or** Microsoft 365 Agents SDK containers.
 - `template/src/integrations/agent365Adapter.js` - Agent365 SDK insertion points.
 - `template/src/integrations/purviewAdapter.js` - Purview Graph calls for `protectionScopes/compute` and `contentActivities`.
+- `template/src/integrations/entraSidecarClient.js` - gets Graph authorization headers from the local Entra Agent ID sidecar.
+- `template/entra-sidecar/` - Docker Compose and detailed beginner instructions for autonomous and OBO agents.
 - `template/src/integrations/bedrockAdapter.js` - Amazon Bedrock Runtime `Converse` integration.
 - `template/bedrock/README.md` - complete copy-paste Bedrock setup plus Agent 365 and Purview SDK guidance.
 - `template/src/exampleRunner.js` - runnable skeleton showing wire-up.
@@ -38,29 +41,31 @@ Use `template/README.md` as the source of truth for:
 
 1. Follow prerequisites in `template/README.md`.
 2. Copy `template/.env.example` to `.env` and fill all placeholder values.
-3. Pick your host:
+3. Follow `template/entra-sidecar/README.md` to add your blueprint and agent identity values and start the local auth sidecar.
+4. Pick your host:
    - `agent-framework` (Agent Framework)
    - `m365-agents-sdk` (Microsoft 365 Agents SDK / `microsoft/agents`)
    - `bedrock` (direct Amazon Bedrock model invocation)
-3. For Bedrock, follow the copy-paste instructions in `template/bedrock/README.md`.
-4. Replace TODO blocks in:
+5. For Bedrock, follow the copy-paste instructions in `template/bedrock/README.md`.
+6. Replace TODO blocks in:
    - `template/src/framework/hostAdapters.js`
    - `template/src/integrations/agent365Adapter.js`
    - `template/src/integrations/purviewAdapter.js`
-5. Keep Purview app registration IDs aligned between:
+7. Keep Purview app registration IDs aligned between:
    - `PURVIEW_APP_LOCATION_ID` in `.env`
    - DLP policy script application list in `template/purview/Create-DlpPolicyForCustomAIApps.template.ps1`
-6. Register the middleware from `agentMiddlewareTemplate.js` in your host runtime and route each user turn through it.
-7. If you prefer Python, start from `template/python/example_runner.py`.
-8. If you prefer C++, start from `template/cpp/src/example_runner.cpp`.
-9. If you prefer C#/.NET, start from `template/dotnet/Program.cs`.
-10. If you prefer Rust, start from `template/rust/src/main.rs`.
-11. If you prefer Go, start from `template/go/main.go`.
+8. Register the middleware from `agentMiddlewareTemplate.js` in your host runtime and route each user turn through it.
+9. If you prefer Python, start from `template/python/example_runner.py`.
+10. If you prefer C++, start from `template/cpp/src/example_runner.cpp`.
+11. If you prefer C#/.NET, start from `template/dotnet/Program.cs`.
+12. If you prefer Rust, start from `template/rust/src/main.rs`.
+13. If you prefer Go, start from `template/go/main.go`.
 
 ## Runtime flow
 
-1. Compute Purview protection scopes for the signed-in user.
-2. Evaluate inbound content (`uploadText`) before model execution.
-3. Report decision/events through Agent365 telemetry hooks.
-4. Evaluate outbound content (`downloadText`) after model execution.
-5. Enforce block/redact decisions before returning content to the caller.
+1. Ask the Entra Agent ID sidecar for an autonomous or OBO Graph authorization header.
+2. Compute Purview protection scopes for the signed-in user.
+3. Evaluate inbound content (`uploadText`) before model execution.
+4. Report decision/events through Agent365 telemetry hooks.
+5. Evaluate outbound content (`downloadText`) after model execution.
+6. Enforce block/redact decisions before returning content to the caller.

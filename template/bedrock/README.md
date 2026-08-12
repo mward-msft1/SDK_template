@@ -48,10 +48,15 @@ BEDROCK_PROMPT=Summarize the purpose of this agent in three bullets.
 
 DEFAULT_USER_ID=REPLACE_WITH_ENTRA_USER_OBJECT_ID
 PURVIEW_APP_LOCATION_ID=REPLACE_WITH_ENTRA_APP_ID_IN_THE_DLP_POLICY
-GRAPH_ACCESS_TOKEN_PLACEHOLDER=REPLACE_WITH_SHORT_LIVED_GRAPH_TOKEN
+AGENT_CLIENT_ID=REPLACE_WITH_AGENT_IDENTITY_CLIENT_ID
+ENTRA_SIDECAR_ENABLED=true
+ENTRA_SIDECAR_AUTH_MODE=autonomous
 ```
 
-Fill the remaining required placeholders in `.env`, then authenticate to AWS. For example, with an IAM Identity Center profile:
+Keep `BLUEPRINT_APP_ID` and `BLUEPRINT_CLIENT_SECRET` only in
+`entra-sidecar/.env`, as shown in `../entra-sidecar/README.md`.
+
+Start the Entra sidecar as described in `../entra-sidecar/README.md`, fill the remaining required placeholders, then authenticate to AWS. For example, with an IAM Identity Center profile:
 
 ```powershell
 aws sso login --profile REPLACE_WITH_PROFILE
