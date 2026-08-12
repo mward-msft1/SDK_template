@@ -10,6 +10,7 @@ func runWithAgentFramework(
 		TurnID:    "replace-with-runtime-turn-id",
 		UserID:    config.DefaultUserID,
 		InputText: "Hello from Agent Framework host",
+		AuthorizationHeader: "",
 	}
 
 	// TODO: Replace with your real model/agent invoke function.
@@ -32,6 +33,7 @@ func runWithM365AgentsSDK(
 		TurnID:    "replace-with-activity-id",
 		UserID:    config.DefaultUserID,
 		InputText: "Hello from Microsoft 365 Agents SDK host",
+		AuthorizationHeader: "replace-with-current-request-authorization-header",
 	}
 
 	// TODO: Replace with your AI invocation (OpenAI/Azure OpenAI/other).

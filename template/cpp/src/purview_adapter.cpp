@@ -4,10 +4,13 @@
 #include <cctype>
 #include <stdexcept>
 
-PurviewAdapter::PurviewAdapter(const AppConfig& config) : config_(config) {}
+PurviewAdapter::PurviewAdapter(const AppConfig& config)
+    : config_(config), entraSidecar_(config) {}
 
-std::string PurviewAdapter::computeProtectionScopes(const std::string& userId) const {
-  requireGraphToken();
+std::string PurviewAdapter::computeProtectionScopes(
+    const std::string& userId,
+    const std::string& incomingAuthorizationHeader) const {
+  requireGraphToken(incomingAuthorizationHeader);
   // TODO: Replace with real Graph call:
   // POST /users/{id}/dataSecurityAndGovernance/protectionScopes/compute
   return "scopes: evaluate uploadText/downloadText for user " + userId;
@@ -17,8 +20,9 @@ std::string PurviewAdapter::evaluateContent(
     const std::string& userId,
     const std::string& activity,
     const std::string& content,
-    const std::string& contextId) const {
-  requireGraphToken();
+    const std::string& contextId,
+    const std::string& incomingAuthorizationHeader) const {
+  requireGraphToken(incomingAuthorizationHeader);
   // TODO: Replace with real Graph call:
   // POST /users/{id}/dataSecurityAndGovernance/activities/contentActivities
   // This placeholder echoes inputs so beginners can trace the flow.
@@ -36,9 +40,14 @@ Decision PurviewAdapter::getEnforcementDecision(const std::string& resultPayload
   return d;
 }
 
-void PurviewAdapter::requireGraphToken() const {
+void PurviewAdapter::requireGraphToken(
+    const std::string& incomingAuthorizationHeader) const {
+  if (config_.entraSidecarEnabled) {
+    (void)entraSidecar_.getAuthorizationHeader(incomingAuthorizationHeader);
+    return;
+  }
   if (config_.graphAccessTokenPlaceholder.empty()) {
     throw std::runtime_error(
-        "Missing GRAPH_ACCESS_TOKEN_PLACEHOLDER. Replace token acquisition TODO in PurviewAdapter.");
+        "Enable the Entra sidecar or set GRAPH_ACCESS_TOKEN_PLACEHOLDER.");
   }
 }

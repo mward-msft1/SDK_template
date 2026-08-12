@@ -1,5 +1,6 @@
 mod agent365_adapter;
 mod config;
+mod entra_sidecar_client;
 mod host_adapters;
 mod middleware;
 mod models;

@@ -3,27 +3,36 @@ namespace AgnosticAgentTemplate;
 public sealed class PurviewAdapter
 {
     private readonly AppConfig _config;
+    private readonly EntraSidecarClient _entraSidecar;
 
     public PurviewAdapter(AppConfig config)
     {
         _config = config;
+        _entraSidecar = new EntraSidecarClient(config);
     }
 
-    public Task<string> ComputeProtectionScopesAsync(string userId)
+    public async Task<string> ComputeProtectionScopesAsync(
+        string userId,
+        string incomingAuthorizationHeader = "")
     {
-        EnsureGraphToken();
+        _ = await GetGraphAuthorizationHeaderAsync(incomingAuthorizationHeader);
         // TODO: Replace with real Graph call:
         // POST /users/{id}/dataSecurityAndGovernance/protectionScopes/compute
-        return Task.FromResult($"scopes: evaluate uploadText/downloadText for user {userId}");
+        return $"scopes: evaluate uploadText/downloadText for user {userId}";
     }
 
-    public Task<string> EvaluateContentAsync(string userId, string activity, string content, string contextId)
+    public async Task<string> EvaluateContentAsync(
+        string userId,
+        string activity,
+        string content,
+        string contextId,
+        string incomingAuthorizationHeader = "")
     {
-        EnsureGraphToken();
+        _ = await GetGraphAuthorizationHeaderAsync(incomingAuthorizationHeader);
         // TODO: Replace with real Graph call:
         // POST /users/{id}/dataSecurityAndGovernance/activities/contentActivities
         // This placeholder echoes inputs so beginners can trace the flow.
-        return Task.FromResult($"activity={activity}; userId={userId}; contextId={contextId}; content={content}");
+        return $"activity={activity}; userId={userId}; contextId={contextId}; content={content}";
     }
 
     public Decision GetEnforcementDecision(string resultPayload)
@@ -35,12 +44,23 @@ public sealed class PurviewAdapter
         };
     }
 
-    private void EnsureGraphToken()
+    private async Task<string> GetGraphAuthorizationHeaderAsync(
+        string incomingAuthorizationHeader)
     {
-        if (string.IsNullOrWhiteSpace(_config.GraphAccessTokenPlaceholder))
+        if (_config.EntraSidecarEnabled)
+        {
+            return await _entraSidecar.GetAuthorizationHeaderAsync(
+                incomingAuthorizationHeader);
+        }
+
+        var token = _config.GraphAccessTokenPlaceholder.Trim();
+        if (string.IsNullOrWhiteSpace(token))
         {
             throw new InvalidOperationException(
-                "Missing GRAPH_ACCESS_TOKEN_PLACEHOLDER. Replace token acquisition TODO in PurviewAdapter.");
+                "Enable the Entra sidecar or set GRAPH_ACCESS_TOKEN_PLACEHOLDER.");
         }
+        return token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+            ? token
+            : $"Bearer {token}";
     }
 }

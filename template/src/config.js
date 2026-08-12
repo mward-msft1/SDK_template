@@ -30,6 +30,16 @@ export function loadConfig() {
     tenantId: required("TENANT_ID"),
     entraClientId: required("ENTRA_CLIENT_ID"),
     entraClientSecret: required("ENTRA_CLIENT_SECRET"),
+    entraSidecarEnabled:
+      (process.env.ENTRA_SIDECAR_ENABLED || "true").toLowerCase() === "true",
+    entraSidecarUrl: process.env.ENTRA_SIDECAR_URL || "http://localhost:5000",
+    entraSidecarServiceName: process.env.ENTRA_SIDECAR_SERVICE_NAME || "Graph",
+    entraSidecarAuthMode:
+      process.env.ENTRA_SIDECAR_AUTH_MODE || "autonomous",
+    entraAgentClientId: requiredWhen(
+      "AGENT_CLIENT_ID",
+      (process.env.ENTRA_SIDECAR_ENABLED || "true").toLowerCase() === "true"
+    ),
     defaultUserId: process.env.DEFAULT_USER_ID || "",
     agentName: process.env.AGENT_NAME || "ContosoAgnosticAgent",
     agentRuntime: process.env.AGENT_RUNTIME || "agent-framework",
@@ -67,7 +77,7 @@ export function loadConfig() {
       (process.env.PURVIEW_ENABLE_AUDIT_WHEN_NO_SCOPE || "true").toLowerCase() === "true",
     purviewBlockOnError: (process.env.PURVIEW_BLOCK_ON_ERROR || "true").toLowerCase() === "true",
 
-    // Placeholder until replaced with real MSAL/managed identity token acquisition.
+    // Manual fallback when the Entra sidecar is disabled.
     graphAccessTokenPlaceholder: process.env.GRAPH_ACCESS_TOKEN_PLACEHOLDER || ""
   };
 }

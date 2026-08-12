@@ -13,7 +13,8 @@ public static class AgentMiddlewareTemplate
             {
                 TurnId = inputContext.TurnId,
                 UserId = string.IsNullOrWhiteSpace(inputContext.UserId) ? config.DefaultUserId : inputContext.UserId,
-                InputText = inputContext.InputText
+                InputText = inputContext.InputText,
+                AuthorizationHeader = inputContext.AuthorizationHeader
             };
 
             if (string.IsNullOrWhiteSpace(context.UserId))
@@ -22,13 +23,16 @@ public static class AgentMiddlewareTemplate
             }
 
             await agent365.ReportTurnStartAsync(context);
-            _ = await purview.ComputeProtectionScopesAsync(context.UserId);
+            _ = await purview.ComputeProtectionScopesAsync(
+                context.UserId,
+                context.AuthorizationHeader);
 
             var inbound = await purview.EvaluateContentAsync(
                 context.UserId,
                 "uploadText",
                 context.InputText,
-                context.TurnId);
+                context.TurnId,
+                context.AuthorizationHeader);
             var inboundDecision = purview.GetEnforcementDecision(inbound);
             await agent365.ReportPurviewDecisionAsync(context, "pre-model", inboundDecision);
 
@@ -49,7 +53,8 @@ public static class AgentMiddlewareTemplate
                 context.UserId,
                 "downloadText",
                 modelResult.OutputText,
-                context.TurnId);
+                context.TurnId,
+                context.AuthorizationHeader);
             var outboundDecision = purview.GetEnforcementDecision(outbound);
             await agent365.ReportPurviewDecisionAsync(context, "post-model", outboundDecision);
 

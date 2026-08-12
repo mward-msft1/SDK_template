@@ -14,6 +14,7 @@ pub fn run_with_agent_framework(
         turn_id: "replace-with-runtime-turn-id".to_string(),
         user_id: config.default_user_id.clone(),
         input_text: "Hello from Agent Framework host".to_string(),
+        authorization_header: String::new(),
     };
 
     // TODO: Replace with your real model/agent invoke function.
@@ -38,6 +39,7 @@ pub fn run_with_m365_agents_sdk(
         turn_id: "replace-with-activity-id".to_string(),
         user_id: config.default_user_id.clone(),
         input_text: "Hello from Microsoft 365 Agents SDK host".to_string(),
+        authorization_header: "replace-with-current-request-authorization-header".to_string(),
     };
 
     // TODO: Replace with your AI invocation (OpenAI/Azure OpenAI/other).

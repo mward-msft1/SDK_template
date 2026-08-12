@@ -7,25 +7,30 @@ import (
 )
 
 type AppConfig struct {
-	TenantID                     string
-	EntraClientID                string
-	EntraClientSecret            string
-	DefaultUserID                string
-	AgentName                    string
-	HostSDK                      string
-	M365AgentsBotAppID           string
-	M365AgentsBotAppPassword     string
-	M365AgentsTenantID           string
-	Agent365AppID                string
-	Agent365AppSecret            string
-	Agent365TenantID             string
-	Agent365ReportingEndpoint    string
-	PurviewGraphBaseURL          string
-	PurviewAppLocationID         string
-	PurviewActivityTypes         string
-	PurviewEnableAuditWhenNoScope bool
-	PurviewBlockOnError          bool
-	GraphAccessTokenPlaceholder  string
+	TenantID                         string
+	EntraClientID                    string
+	EntraClientSecret                string
+	EntraSidecarEnabled              bool
+	EntraSidecarURL                  string
+	EntraSidecarServiceName          string
+	EntraSidecarAuthMode             string
+	EntraAgentClientID               string
+	DefaultUserID                    string
+	AgentName                        string
+	HostSDK                          string
+	M365AgentsBotAppID               string
+	M365AgentsBotAppPassword         string
+	M365AgentsTenantID               string
+	Agent365AppID                    string
+	Agent365AppSecret                string
+	Agent365TenantID                 string
+	Agent365ReportingEndpoint        string
+	PurviewGraphBaseURL              string
+	PurviewAppLocationID             string
+	PurviewActivityTypes             string
+	PurviewEnableAuditWhenNoScope    bool
+	PurviewBlockOnError              bool
+	GraphAccessTokenPlaceholder      string
 }
 
 func required(name string) (string, error) {
@@ -49,6 +54,7 @@ func asBool(name, fallback string) bool {
 }
 
 func loadConfig() (AppConfig, error) {
+	sidecarEnabled := asBool("ENTRA_SIDECAR_ENABLED", "true")
 	tenantID, err := required("TENANT_ID")
 	if err != nil {
 		return AppConfig{}, err
@@ -60,6 +66,13 @@ func loadConfig() (AppConfig, error) {
 	entraClientSecret, err := required("ENTRA_CLIENT_SECRET")
 	if err != nil {
 		return AppConfig{}, err
+	}
+	entraAgentClientID := optional("AGENT_CLIENT_ID", "")
+	if sidecarEnabled {
+		entraAgentClientID, err = required("AGENT_CLIENT_ID")
+		if err != nil {
+			return AppConfig{}, err
+		}
 	}
 	m365BotAppID, err := required("M365_AGENTS_BOT_APP_ID")
 	if err != nil {
@@ -95,24 +108,29 @@ func loadConfig() (AppConfig, error) {
 	}
 
 	return AppConfig{
-		TenantID:                     tenantID,
-		EntraClientID:                entraClientID,
-		EntraClientSecret:            entraClientSecret,
-		DefaultUserID:                optional("DEFAULT_USER_ID", ""),
-		AgentName:                    optional("AGENT_NAME", "ContosoAgnosticAgent"),
-		HostSDK:                      optional("HOST_SDK", "agent-framework"),
-		M365AgentsBotAppID:           m365BotAppID,
-		M365AgentsBotAppPassword:     m365BotAppPassword,
-		M365AgentsTenantID:           m365TenantID,
-		Agent365AppID:                agent365AppID,
-		Agent365AppSecret:            agent365AppSecret,
-		Agent365TenantID:             agent365TenantID,
-		Agent365ReportingEndpoint:    agent365Endpoint,
-		PurviewGraphBaseURL:          optional("PURVIEW_GRAPH_BASE_URL", "https://graph.microsoft.com/v1.0"),
-		PurviewAppLocationID:         purviewLocationID,
-		PurviewActivityTypes:         optional("PURVIEW_ACTIVITY_TYPES", "uploadText,downloadText"),
-		PurviewEnableAuditWhenNoScope: asBool("PURVIEW_ENABLE_AUDIT_WHEN_NO_SCOPE", "true"),
-		PurviewBlockOnError:          asBool("PURVIEW_BLOCK_ON_ERROR", "true"),
-		GraphAccessTokenPlaceholder:  optional("GRAPH_ACCESS_TOKEN_PLACEHOLDER", ""),
+		TenantID:                         tenantID,
+		EntraClientID:                    entraClientID,
+		EntraClientSecret:                entraClientSecret,
+		EntraSidecarEnabled:              sidecarEnabled,
+		EntraSidecarURL:                  optional("ENTRA_SIDECAR_URL", "http://localhost:5000"),
+		EntraSidecarServiceName:          optional("ENTRA_SIDECAR_SERVICE_NAME", "Graph"),
+		EntraSidecarAuthMode:             optional("ENTRA_SIDECAR_AUTH_MODE", "autonomous"),
+		EntraAgentClientID:               entraAgentClientID,
+		DefaultUserID:                    optional("DEFAULT_USER_ID", ""),
+		AgentName:                        optional("AGENT_NAME", "ContosoAgnosticAgent"),
+		HostSDK:                          optional("HOST_SDK", "agent-framework"),
+		M365AgentsBotAppID:               m365BotAppID,
+		M365AgentsBotAppPassword:         m365BotAppPassword,
+		M365AgentsTenantID:               m365TenantID,
+		Agent365AppID:                    agent365AppID,
+		Agent365AppSecret:                agent365AppSecret,
+		Agent365TenantID:                 agent365TenantID,
+		Agent365ReportingEndpoint:        agent365Endpoint,
+		PurviewGraphBaseURL:              optional("PURVIEW_GRAPH_BASE_URL", "https://graph.microsoft.com/v1.0"),
+		PurviewAppLocationID:             purviewLocationID,
+		PurviewActivityTypes:             optional("PURVIEW_ACTIVITY_TYPES", "uploadText,downloadText"),
+		PurviewEnableAuditWhenNoScope:    asBool("PURVIEW_ENABLE_AUDIT_WHEN_NO_SCOPE", "true"),
+		PurviewBlockOnError:              asBool("PURVIEW_BLOCK_ON_ERROR", "true"),
+		GraphAccessTokenPlaceholder:      optional("GRAPH_ACCESS_TOKEN_PLACEHOLDER", ""),
 	}, nil
 }

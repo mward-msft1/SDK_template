@@ -13,14 +13,19 @@ export function createGovernedAgentMiddleware({ purview, agent365, config }) {
 
     await agent365.reportTurnStart(context);
 
-    const scopes = await purview.computeProtectionScopes(userId);
+    const incomingAuthorizationHeader = context.authorizationHeader || "";
+    const scopes = await purview.computeProtectionScopes(
+      userId,
+      incomingAuthorizationHeader
+    );
     context.purviewScopes = scopes;
 
     const inboundResult = await purview.evaluateContent({
       userId,
       activity: "uploadText",
       content: context.inputText,
-      contextId: context.turnId
+      contextId: context.turnId,
+      incomingAuthorizationHeader
     });
 
     const inboundDecision = purview.getEnforcementDecision(inboundResult);
@@ -41,7 +46,8 @@ export function createGovernedAgentMiddleware({ purview, agent365, config }) {
       userId,
       activity: "downloadText",
       content: modelResult.outputText,
-      contextId: context.turnId
+      contextId: context.turnId,
+      incomingAuthorizationHeader
     });
 
     const outboundDecision = purview.getEnforcementDecision(outboundResult);

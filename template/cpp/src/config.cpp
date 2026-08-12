@@ -33,9 +33,20 @@ bool asBool(const std::string& value) {
 
 AppConfig loadConfig() {
   AppConfig cfg;
+  cfg.entraSidecarEnabled =
+      asBool(getOrDefault("ENTRA_SIDECAR_ENABLED", "true"));
   cfg.tenantId = getOrThrow("TENANT_ID");
   cfg.entraClientId = getOrThrow("ENTRA_CLIENT_ID");
   cfg.entraClientSecret = getOrThrow("ENTRA_CLIENT_SECRET");
+  cfg.entraSidecarUrl =
+      getOrDefault("ENTRA_SIDECAR_URL", "http://localhost:5000");
+  cfg.entraSidecarServiceName =
+      getOrDefault("ENTRA_SIDECAR_SERVICE_NAME", "Graph");
+  cfg.entraSidecarAuthMode =
+      getOrDefault("ENTRA_SIDECAR_AUTH_MODE", "autonomous");
+  cfg.entraAgentClientId = cfg.entraSidecarEnabled
+                               ? getOrThrow("AGENT_CLIENT_ID")
+                               : getOrDefault("AGENT_CLIENT_ID", "");
   cfg.defaultUserId = getOrDefault("DEFAULT_USER_ID", "");
   cfg.agentName = getOrDefault("AGENT_NAME", "ContosoAgnosticAgent");
   cfg.hostSdk = getOrDefault("HOST_SDK", "agent-framework");

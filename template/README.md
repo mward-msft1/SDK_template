@@ -1,4 +1,4 @@
-# Agnostic Agent + M365 Agents + Agent365 + Purview Template
+# Agnostic Agent + Entra Agent ID + M365 Agents + Agent365 + Purview Template
 
 This is a **beginner template** showing where to interject **Agent365 SDK** and **Purview API** calls in either:
 - **Microsoft Agent Framework** (`microsoft/agent-framework`)
@@ -6,6 +6,8 @@ This is a **beginner template** showing where to interject **Agent365 SDK** and 
 - **Amazon Bedrock** direct model inference (`Converse`)
 
 You can keep one policy + reporting pattern, then swap host SDKs.
+
+Authentication is language neutral: every example calls the **Microsoft Entra Agent ID auth sidecar** over localhost to obtain a downstream authorization header.
 
 You get both:
 - JavaScript examples in `src/`
@@ -20,10 +22,12 @@ You get both:
 ### Microsoft 365 / Entra / Purview prerequisites
 
 1. A Microsoft Entra tenant and an app registration for your agent host.
-2. Microsoft Purview enabled in that tenant.
-3. Graph permissions for Purview API flows (for example `Content.Process.User` and `ProtectionScopes.Compute.User`) granted to your app registration.
-4. A Purview DLP policy scoped to your app registration (`Application` enforcement plane).
-5. If using the included policy script template, prerequisites from the Purview sample:
+2. An Agent ID blueprint, blueprint principal, and individual agent identity.
+3. A local-development client secret on the blueprint. Use workload identity or a certificate in production.
+4. Microsoft Purview enabled in that tenant.
+5. Graph permissions for Purview API flows (for example `Content.Process.User` and `ProtectionScopes.Compute.User`) granted to the agent identity.
+6. A Purview DLP policy scoped to your app registration (`Application` enforcement plane).
+7. If using the included policy script template, prerequisites from the Purview sample:
    - PowerShell 7+
    - ExchangeOnlineManagement module
    - A role that can manage Purview DLP (for example Compliance Administrator)
@@ -39,35 +43,45 @@ You get both:
 | Rust (`rust/`) | Rust stable toolchain (`cargo`) |
 | Go (`go/`) | Go 1.22+ |
 | Amazon Bedrock (`src/`) | Node.js 20+, AWS SDK credentials, Bedrock model access |
+| Entra sidecar | Docker Desktop with Compose v2 |
 
 ## One-time setup for all templates
 
 1. From `template/`, create env file:
    ```bash
    cp .env.example .env
+   cp entra-sidecar/.env.example entra-sidecar/.env
    ```
-2. Fill all required placeholders in `.env` (tenant IDs, app IDs, secrets, endpoints).
-3. Choose host SDK in `.env`:
+2. Fill `TENANT_ID`, `BLUEPRINT_APP_ID`, and `BLUEPRINT_CLIENT_SECRET` in `entra-sidecar/.env`. Fill `AGENT_CLIENT_ID` in the application `.env`.
+3. Start and verify the sidecar:
+   ```bash
+   docker compose --env-file entra-sidecar/.env -f entra-sidecar/docker-compose.yml up -d
+   curl --fail http://localhost:5000/healthz
+   ```
+4. Fill the remaining placeholders in `.env` (app IDs, endpoints, and runtime settings).
+5. Choose host SDK in `.env`:
    - `HOST_SDK=agent-framework`
    - `HOST_SDK=m365-agents-sdk`
    - `HOST_SDK=bedrock`
-4. Keep Purview IDs aligned:
+6. Keep Purview IDs aligned:
    - `.env` → `PURVIEW_APP_LOCATION_ID`
    - `purview/Create-DlpPolicyForCustomAIApps.template.ps1` → `$Applications`
-5. Replace TODOs for:
-   - token acquisition in Purview adapters
+7. Replace TODOs for:
    - Agent365 reporting adapter calls
    - host-specific wiring adapters
+
+For a full explanation, PowerShell commands, autonomous/OBO use cases, production guidance, and troubleshooting, read [`entra-sidecar/README.md`](entra-sidecar/README.md).
 
 ## Beginner mental model (simple)
 
 Think of each message as a pipeline:
 1. user sends text
-2. Purview checks if policy allows it
-3. model runs (if allowed)
-4. Purview checks model response
-5. app returns or blocks response
-6. Agent365 logs what happened
+2. app asks the Entra sidecar for the agent's Graph authorization header
+3. Purview checks if policy allows the input
+4. model runs (if allowed)
+5. Purview checks model response
+6. app returns or blocks response
+7. Agent365 logs what happened
 
 ## Where each integration happens
 
@@ -97,10 +111,12 @@ For Go, wire it in `go/host_adapters.go`.
 
 ## Files to edit first (in order)
 
+- `entra-sidecar/README.md`
+  - create the tenant objects, set unique environment values, and choose autonomous or OBO
 - `src/integrations/agent365Adapter.js`
  - replace TODO stubs with official Agent365 SDK calls for reporting
 - `src/integrations/purviewAdapter.js`
- - replace token placeholder with MSAL/managed-identity token acquisition
+ - uses the Entra sidecar for Graph authorization
  - adapt response parser in `getEnforcementDecision`
 - `src/framework/hostAdapters.js`
  - replace placeholders with your real host runtime objects/handlers
@@ -132,13 +148,17 @@ For Go, wire it in `go/host_adapters.go`.
 | Placeholder | Purpose |
 |---|---|
 | `TENANT_ID` | Microsoft Entra tenant hosting app + policies |
-| `ENTRA_CLIENT_ID` / `ENTRA_CLIENT_SECRET` | app credential used to acquire Graph token |
-| `HOST_SDK` | choose `agent-framework` or `m365-agents-sdk` |
+| `BLUEPRINT_APP_ID` | Agent ID blueprint application client ID; sidecar `.env` only |
+| `BLUEPRINT_CLIENT_SECRET` | local development credential; sidecar `.env` only |
+| `AGENT_CLIENT_ID` | individual agent identity client ID |
+| `ENTRA_SIDECAR_AUTH_MODE` | `autonomous` or `obo` |
+| Current request `Authorization` header | pass through `TurnContext` for OBO only; never store it in `.env` |
+| `HOST_SDK` | choose `agent-framework`, `m365-agents-sdk`, or `bedrock` |
 | `M365_AGENTS_BOT_APP_ID` / `M365_AGENTS_BOT_APP_PASSWORD` | Microsoft 365 Agents SDK app credentials |
 | `PURVIEW_APP_LOCATION_ID` | Entra app registration ID used in DLP `Application` location |
 | `AGENT365_APP_ID` / `AGENT365_APP_SECRET` | Agent365 SDK app credentials |
 | `AGENT365_REPORTING_ENDPOINT` | destination for Agent365 reporting/telemetry |
-| `GRAPH_ACCESS_TOKEN_PLACEHOLDER` | temporary runtime token hook until MSAL flow is wired |
+| `GRAPH_ACCESS_TOKEN_PLACEHOLDER` | manual fallback used only when the sidecar is disabled |
 
 ## Purview policy bootstrap
 
@@ -176,8 +196,9 @@ Edit first:
 ```bash
 cd template
 set -a && source .env && set +a
-/usr/bin/c++ -std=c++17 cpp/src/*.cpp -o ./cpp/example_runner
-./cpp/example_runner
+cmake -S cpp -B cpp/build
+cmake --build cpp/build
+./cpp/build/example_runner
 ```
 
 Edit first:

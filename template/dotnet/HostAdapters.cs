@@ -11,7 +11,8 @@ public static class HostAdapters
         {
             TurnId = "replace-with-runtime-turn-id",
             UserId = defaultUserId,
-            InputText = "Hello from Agent Framework host"
+            InputText = "Hello from Agent Framework host",
+            AuthorizationHeader = ""
         };
 
         // TODO: Replace with your real model/agent invoke function.
@@ -31,7 +32,8 @@ public static class HostAdapters
         {
             TurnId = "replace-with-activity-id",
             UserId = defaultUserId,
-            InputText = "Hello from Microsoft 365 Agents SDK host"
+            InputText = "Hello from Microsoft 365 Agents SDK host",
+            AuthorizationHeader = "replace-with-current-request-authorization-header"
         };
 
         // TODO: Replace with your AI invocation (OpenAI/Azure OpenAI/other).

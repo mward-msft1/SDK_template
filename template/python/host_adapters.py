@@ -13,6 +13,7 @@ async def run_with_agent_framework(middleware):
         "turn_id": "replace-with-runtime-turn-id",
         "user_id": "replace-with-user-object-id",
         "input_text": "Hello from Agent Framework host",
+        "authorization_header": "",
     }
 
     # TODO: Replace with your real model/agent invoke function.
@@ -28,6 +29,7 @@ async def run_with_m365_agents_sdk(middleware):
         "turn_id": "replace-with-activity-id",
         "user_id": "replace-with-entra-object-id",
         "input_text": "Hello from Microsoft 365 Agents SDK host",
+        "authorization_header": "replace-with-current-request-authorization-header",
     }
 
     # TODO: Replace with your AI invocation (OpenAI/Azure OpenAI/other).

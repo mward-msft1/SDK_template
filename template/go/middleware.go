@@ -20,11 +20,11 @@ func runGovernedTurn(
 	}
 
 	agent365.reportTurnStart(context)
-	if _, err := purview.computeProtectionScopes(context.UserID); err != nil {
+	if _, err := purview.computeProtectionScopes(context.UserID, context.AuthorizationHeader); err != nil {
 		return ModelResult{}, err
 	}
 
-	inbound, err := purview.evaluateContent(context.UserID, "uploadText", context.InputText, context.TurnID)
+	inbound, err := purview.evaluateContent(context.UserID, "uploadText", context.InputText, context.TurnID, context.AuthorizationHeader)
 	if err != nil {
 		return ModelResult{}, err
 	}
@@ -44,7 +44,7 @@ func runGovernedTurn(
 		return ModelResult{}, err
 	}
 
-	outbound, err := purview.evaluateContent(context.UserID, "downloadText", modelResult.OutputText, context.TurnID)
+	outbound, err := purview.evaluateContent(context.UserID, "downloadText", modelResult.OutputText, context.TurnID, context.AuthorizationHeader)
 	if err != nil {
 		return ModelResult{}, err
 	}

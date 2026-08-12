@@ -5,6 +5,11 @@ public sealed class AppConfig
     public string TenantId { get; init; } = "";
     public string EntraClientId { get; init; } = "";
     public string EntraClientSecret { get; init; } = "";
+    public bool EntraSidecarEnabled { get; init; }
+    public string EntraSidecarUrl { get; init; } = "";
+    public string EntraSidecarServiceName { get; init; } = "";
+    public string EntraSidecarAuthMode { get; init; } = "";
+    public string EntraAgentClientId { get; init; } = "";
     public string DefaultUserId { get; init; } = "";
     public string AgentName { get; init; } = "";
     public string HostSdk { get; init; } = "";
@@ -41,11 +46,19 @@ public sealed class AppConfig
         static bool AsBool(string name, string fallback) =>
             string.Equals(Optional(name, fallback), "true", StringComparison.OrdinalIgnoreCase);
 
+        var sidecarEnabled = AsBool("ENTRA_SIDECAR_ENABLED", "true");
         return new AppConfig
         {
             TenantId = Required("TENANT_ID"),
             EntraClientId = Required("ENTRA_CLIENT_ID"),
             EntraClientSecret = Required("ENTRA_CLIENT_SECRET"),
+            EntraSidecarEnabled = sidecarEnabled,
+            EntraSidecarUrl = Optional("ENTRA_SIDECAR_URL", "http://localhost:5000"),
+            EntraSidecarServiceName = Optional("ENTRA_SIDECAR_SERVICE_NAME", "Graph"),
+            EntraSidecarAuthMode = Optional("ENTRA_SIDECAR_AUTH_MODE", "autonomous"),
+            EntraAgentClientId = sidecarEnabled
+                ? Required("AGENT_CLIENT_ID")
+                : Optional("AGENT_CLIENT_ID", ""),
             DefaultUserId = Optional("DEFAULT_USER_ID", ""),
             AgentName = Optional("AGENT_NAME", "ContosoAgnosticAgent"),
             HostSdk = Optional("HOST_SDK", "agent-framework"),

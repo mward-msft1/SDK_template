@@ -21,13 +21,17 @@ pub fn run_governed_turn(
     }
 
     agent365.report_turn_start(&context);
-    let _scopes = purview.compute_protection_scopes(&context.user_id)?;
+    let _scopes = purview.compute_protection_scopes(
+        &context.user_id,
+        &context.authorization_header,
+    )?;
 
     let inbound = purview.evaluate_content(
         &context.user_id,
         "uploadText",
         &context.input_text,
         &context.turn_id,
+        &context.authorization_header,
     )?;
     let inbound_decision = purview.get_enforcement_decision(&inbound);
     agent365.report_purview_decision(&context, "pre-model", &inbound_decision);
@@ -48,6 +52,7 @@ pub fn run_governed_turn(
         "downloadText",
         &model_result.output_text,
         &context.turn_id,
+        &context.authorization_header,
     )?;
     let outbound_decision = purview.get_enforcement_decision(&outbound);
     agent365.report_purview_decision(&context, "post-model", &outbound_decision);

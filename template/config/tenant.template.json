@@ -9,6 +9,14 @@
     "agentRuntime": "agent-framework",
     "applicationId": "00000000-0000-0000-0000-000000000000"
   },
+  "entraAgentIdSidecar": {
+    "enabled": true,
+    "url": "http://localhost:5000",
+    "serviceName": "Graph",
+    "authMode": "autonomous",
+    "blueprintApplicationId": "00000000-0000-0000-0000-000000000000",
+    "agentIdentityClientId": "00000000-0000-0000-0000-000000000000"
+  },
   "m365AgentsSdk": {
     "botAppId": "00000000-0000-0000-0000-000000000000",
     "tenantId": "00000000-0000-0000-0000-000000000000",
