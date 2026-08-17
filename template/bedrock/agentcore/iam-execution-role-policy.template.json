@@ -1,0 +1,69 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "InvokeApprovedBedrockModel",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeModel",
+        "bedrock:InvokeModelWithResponseStream",
+        "bedrock:CountTokens"
+      ],
+      "Resource": [
+        "REPLACE_WITH_MODEL_OR_INFERENCE_PROFILE_ARN",
+        "REPLACE_WITH_EACH_UNDERLYING_FOUNDATION_MODEL_ARN"
+      ]
+    },
+    {
+      "Sid": "GetShortLivedAssertionForEntra",
+      "Effect": "Allow",
+      "Action": "sts:GetWebIdentityToken",
+      "Resource": "*",
+      "Condition": {
+        "ForAllValues:StringEquals": {
+          "sts:IdentityTokenAudience": "api://AzureADTokenExchange"
+        },
+        "NumericLessThanEquals": {
+          "sts:DurationSeconds": 300
+        },
+        "StringEquals": {
+          "sts:SigningAlgorithm": "RS256"
+        }
+      }
+    },
+    {
+      "Sid": "WriteAgentCoreRuntimeLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:DescribeLogGroups",
+        "logs:DescribeLogStreams"
+      ],
+      "Resource": "arn:aws:logs:REPLACE_WITH_AWS_REGION:REPLACE_WITH_AWS_ACCOUNT_ID:log-group:/aws/bedrock-agentcore/*"
+    },
+    {
+      "Sid": "WriteAgentCoreTraces",
+      "Effect": "Allow",
+      "Action": [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords",
+        "xray:GetSamplingRules",
+        "xray:GetSamplingTargets"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "WriteAgentCoreMetrics",
+      "Effect": "Allow",
+      "Action": "cloudwatch:PutMetricData",
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "cloudwatch:namespace": "bedrock-agentcore"
+        }
+      }
+    }
+  ]
+}

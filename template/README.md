@@ -4,10 +4,13 @@ This is a **beginner template** showing where to interject **Agent365 SDK** and 
 - **Microsoft Agent Framework** (`microsoft/agent-framework`)
 - **Microsoft 365 Agents SDK** (`microsoft/agents`)
 - **Amazon Bedrock** direct model inference (`Converse`)
+- **Amazon Bedrock AgentCore Runtime** with passwordless Entra Agent ID federation
 
 You can keep one policy + reporting pattern, then swap host SDKs.
 
-Authentication is language neutral: every example calls the **Microsoft Entra Agent ID auth sidecar** over localhost to obtain a downstream authorization header.
+The language-neutral examples call the **Microsoft Entra Agent ID auth
+sidecar** over localhost. The separate AgentCore template uses its AWS Runtime
+execution role and does not use the local sidecar.
 
 You get both:
 - JavaScript examples in `src/`
@@ -43,6 +46,7 @@ You get both:
 | Rust (`rust/`) | Rust stable toolchain (`cargo`) |
 | Go (`go/`) | Go 1.22+ |
 | Amazon Bedrock (`src/`) | Node.js 20+, AWS SDK credentials, Bedrock model access |
+| Amazon Bedrock AgentCore (`bedrock/agentcore/`) | Python, AgentCore CLI, authenticated AWS deployment access |
 | Entra sidecar | Docker Desktop with Compose v2 |
 
 ## One-time setup for all templates
@@ -71,6 +75,10 @@ You get both:
    - host-specific wiring adapters
 
 For a full explanation, PowerShell commands, autonomous/OBO use cases, production guidance, and troubleshooting, read [`entra-sidecar/README.md`](entra-sidecar/README.md).
+
+If AWS will host the agent in AgentCore Runtime, skip the local sidecar setup
+for that deployment and follow
+[`bedrock/agentcore/README.md`](bedrock/agentcore/README.md).
 
 ## Beginner mental model (simple)
 
@@ -250,4 +258,9 @@ If you use another runtime, keep the same middleware order and only replace runt
 
 ## Amazon Bedrock
 
-For a complete copy-paste PowerShell setup, IAM policy template, architecture flow, and current Agent 365 and Purview SDK/API guidance, see [`bedrock/README.md`](bedrock/README.md).
+For direct `Converse` model inference plus Agent 365 and Purview guidance, see
+[`bedrock/README.md`](bedrock/README.md).
+
+For an AgentCore-hosted Python agent with passwordless federation from the
+Runtime execution role to Entra Agent ID, see
+[`bedrock/agentcore/README.md`](bedrock/agentcore/README.md).

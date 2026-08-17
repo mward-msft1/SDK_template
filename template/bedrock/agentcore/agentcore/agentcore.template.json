@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.agentcore.aws.dev/v1/agentcore.json",
+  "name": "EntraAgentTemplate",
+  "version": 1,
+  "runtimes": [
+    {
+      "name": "EntraAgentRuntime",
+      "build": "CodeZip",
+      "entrypoint": "main.py",
+      "codeLocation": "app/EntraAgentTemplate/",
+      "runtimeVersion": "PYTHON_3_14",
+      "executionRoleArn": "arn:aws:iam::111122223333:role/REPLACE_WITH_AGENTCORE_EXECUTION_ROLE",
+      "envVars": [
+        {
+          "name": "ENTRA_TENANT_ID",
+          "value": "REPLACE_WITH_ENTRA_TENANT_ID"
+        },
+        {
+          "name": "ENTRA_BLUEPRINT_CLIENT_ID",
+          "value": "REPLACE_WITH_BLUEPRINT_APP_ID"
+        },
+        {
+          "name": "ENTRA_CHILD_AGENT_CLIENT_ID",
+          "value": "REPLACE_WITH_CHILD_AGENT_CLIENT_ID"
+        },
+        {
+          "name": "AWS_REGION",
+          "value": "us-east-1"
+        },
+        {
+          "name": "BEDROCK_MODEL_ID",
+          "value": "amazon.nova-micro-v1:0"
+        }
+      ],
+      "networkMode": "PUBLIC",
+      "protocol": "HTTP"
+    }
+  ]
+}
