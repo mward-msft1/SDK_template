@@ -1,0 +1,8 @@
+[
+  {
+    "name": "development",
+    "description": "Replace with the AWS account and Region used for this AgentCore deployment.",
+    "account": "111122223333",
+    "region": "us-east-1"
+  }
+]

@@ -5,3 +5,5 @@ node_modules/
 **/obj/
 **/target/
 **/build/
+**/agentcore.json
+**/aws-targets.json

@@ -2,6 +2,12 @@
 
 This copy-paste path sends a text prompt to Amazon Bedrock through the AWS SDK for JavaScript v3 `Converse` API while keeping Microsoft Purview evaluation before and after model inference.
 
+This is the **direct model inference** path. To deploy the agent itself into
+Amazon Bedrock AgentCore Runtime and use passwordless federation from its AWS
+execution role to Microsoft Entra Agent ID, use
+[`agentcore/README.md`](agentcore/README.md). AgentCore is a separate hosting
+and identity path; it does not require the local Entra sidecar.
+
 ## What happens on each turn
 
 1. The app computes Microsoft Purview protection scopes for the signed-in user.
@@ -108,3 +114,4 @@ Start here:
 - [Get started with the Amazon Bedrock API](https://docs.aws.amazon.com/bedrock/latest/userguide/getting-started-api.html)
 - [Inference using the Converse API](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html)
 - [AWS SDK for JavaScript v3 Bedrock Runtime examples](https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/javascript_bedrock-runtime_code_examples.html)
+- [AgentCore + Entra Agent ID federation template](agentcore/README.md)

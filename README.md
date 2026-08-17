@@ -7,6 +7,7 @@ A **beginner-friendly, agnostic agent template** showing how to inject:
 4. **Microsoft Purview (Graph) policy evaluation**
 5. **Amazon Bedrock** model inference through the `Converse` API
 6. **Microsoft Entra Agent ID auth sidecar** for autonomous and OBO tokens
+7. **Amazon Bedrock AgentCore Runtime** passwordless federation to Entra Agent ID
 
 The goal is to give you a portable starter you can adapt to Python, .NET, or Node runtimes while keeping all tenant-bound values as explicit placeholders.
 
@@ -34,6 +35,7 @@ Use `template/README.md` as the source of truth for:
 - `template/entra-sidecar/` - Docker Compose and detailed beginner instructions for autonomous and OBO agents.
 - `template/src/integrations/bedrockAdapter.js` - Amazon Bedrock Runtime `Converse` integration.
 - `template/bedrock/README.md` - complete copy-paste Bedrock setup plus Agent 365 and Purview SDK guidance.
+- `template/bedrock/agentcore/` - AgentCore Runtime, IAM, Strands, and two-stage Entra workload federation template.
 - `template/src/exampleRunner.js` - runnable skeleton showing wire-up.
 - `template/purview/Create-DlpPolicyForCustomAIApps.template.ps1` - tenant DLP policy bootstrap placeholders.
 
@@ -47,6 +49,8 @@ Use `template/README.md` as the source of truth for:
    - `m365-agents-sdk` (Microsoft 365 Agents SDK / `microsoft/agents`)
    - `bedrock` (direct Amazon Bedrock model invocation)
 5. For Bedrock, follow the copy-paste instructions in `template/bedrock/README.md`.
+   For AgentCore-hosted federation, use `template/bedrock/agentcore/README.md`
+   instead of the local sidecar path.
 6. Replace TODO blocks in:
    - `template/src/framework/hostAdapters.js`
    - `template/src/integrations/agent365Adapter.js`
@@ -69,3 +73,18 @@ Use `template/README.md` as the source of truth for:
 4. Report decision/events through Agent365 telemetry hooks.
 5. Evaluate outbound content (`downloadText`) after model execution.
 6. Enforce block/redact decisions before returning content to the caller.
+
+### AgentCore Runtime path
+
+This alternative does not use the local sidecar:
+
+1. The AgentCore execution role calls AWS STS `GetWebIdentityToken` for a
+   short-lived RS256 assertion with audience `api://AzureADTokenExchange`.
+2. The application exchanges the assertion for an Entra Blueprint token using
+   the child Agent Identity ID as `fmi_path`.
+3. It exchanges the Blueprint token for a child Agent Identity resource token.
+4. The resource token stays in process memory and is used only for the intended
+   downstream API request.
+
+See `template/bedrock/agentcore/README.md` for copy-paste deployment,
+identifier mapping, IAM restrictions, and troubleshooting.
