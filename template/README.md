@@ -5,6 +5,7 @@ This is a **beginner template** showing where to interject **Agent365 SDK** and 
 - **Microsoft 365 Agents SDK** (`microsoft/agents`)
 - **Amazon Bedrock** direct model inference (`Converse`)
 - **Amazon Bedrock AgentCore Runtime** with passwordless Entra Agent ID federation
+- **Cursor SDK** local orchestration with mandatory Purview gates
 
 You can keep one policy + reporting pattern, then swap host SDKs.
 
@@ -19,6 +20,7 @@ You get both:
 - C#/.NET examples in `dotnet/`
 - Rust examples in `rust/`
 - Go examples in `go/`
+- A complete TypeScript Cursor SDK example in `cursor/`
 
 ## Prerequisites
 
@@ -47,6 +49,7 @@ You get both:
 | Go (`go/`) | Go 1.22+ |
 | Amazon Bedrock (`src/`) | Node.js 20+, AWS SDK credentials, Bedrock model access |
 | Amazon Bedrock AgentCore (`bedrock/agentcore/`) | Python, AgentCore CLI, authenticated AWS deployment access |
+| Cursor (`cursor/`) | Node.js 22.13+, Cursor API key |
 | Entra sidecar | Docker Desktop with Compose v2 |
 
 ## One-time setup for all templates
@@ -79,6 +82,10 @@ For a full explanation, PowerShell commands, autonomous/OBO use cases, productio
 If AWS will host the agent in AgentCore Runtime, skip the local sidecar setup
 for that deployment and follow
 [`bedrock/agentcore/README.md`](bedrock/agentcore/README.md).
+
+For a ready-to-run Cursor host that already uses the current Agent 365
+OpenTelemetry package and enforces Purview before and after every Cursor run,
+follow [`cursor/README.md`](cursor/README.md).
 
 ## Beginner mental model (simple)
 

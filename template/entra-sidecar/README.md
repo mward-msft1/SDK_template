@@ -100,6 +100,12 @@ ENTRA_SIDECAR_SERVICE_NAME=Graph
 ENTRA_SIDECAR_AUTH_MODE=autonomous
 ```
 
+The supplied Compose file defines both `Graph` and `Agent365` downstream
+services. Most templates use `Graph` for Purview. The Cursor template also
+requests an Agent 365 S2S observability token from `Agent365`; grant
+`Agent365.Observability.OtelWrite` to the child Agent Identity before enabling
+remote telemetry export.
+
 Start the sidecar:
 
 ```powershell
