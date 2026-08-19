@@ -16,3 +16,6 @@ services:
       DownstreamApis__Graph__BaseUrl: https://graph.microsoft.com/v1.0/
       DownstreamApis__Graph__Scopes: https://graph.microsoft.com/.default
       DownstreamApis__Graph__RequestAppToken: "true"
+      DownstreamApis__Agent365__BaseUrl: https://api.powerplatform.com/
+      DownstreamApis__Agent365__Scopes: api://9b975845-388f-4429-889e-eab1ef63949c/.default
+      DownstreamApis__Agent365__RequestAppToken: "true"

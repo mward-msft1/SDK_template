@@ -8,6 +8,7 @@ A **beginner-friendly, agnostic agent template** showing how to inject:
 5. **Amazon Bedrock** model inference through the `Converse` API
 6. **Microsoft Entra Agent ID auth sidecar** for autonomous and OBO tokens
 7. **Amazon Bedrock AgentCore Runtime** passwordless federation to Entra Agent ID
+8. **Cursor SDK** local agent orchestration with enforced Purview and Agent 365 telemetry
 
 The goal is to give you a portable starter you can adapt to Python, .NET, or Node runtimes while keeping all tenant-bound values as explicit placeholders.
 
@@ -36,6 +37,7 @@ Use `template/README.md` as the source of truth for:
 - `template/src/integrations/bedrockAdapter.js` - Amazon Bedrock Runtime `Converse` integration.
 - `template/bedrock/README.md` - complete copy-paste Bedrock setup plus Agent 365 and Purview SDK guidance.
 - `template/bedrock/agentcore/` - AgentCore Runtime, IAM, Strands, and two-stage Entra workload federation template.
+- `template/cursor/` - complete local Cursor SDK example with fail-closed Purview input/output gates and the Microsoft OpenTelemetry Distro for Agent 365.
 - `template/src/exampleRunner.js` - runnable skeleton showing wire-up.
 - `template/purview/Create-DlpPolicyForCustomAIApps.template.ps1` - tenant DLP policy bootstrap placeholders.
 
@@ -51,6 +53,7 @@ Use `template/README.md` as the source of truth for:
 5. For Bedrock, follow the copy-paste instructions in `template/bedrock/README.md`.
    For AgentCore-hosted federation, use `template/bedrock/agentcore/README.md`
    instead of the local sidecar path.
+   For Cursor, use `template/cursor/README.md`.
 6. Replace TODO blocks in:
    - `template/src/framework/hostAdapters.js`
    - `template/src/integrations/agent365Adapter.js`
