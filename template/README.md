@@ -98,17 +98,65 @@ Think of each message as a pipeline:
 6. app returns or blocks response
 7. Agent365 logs what happened
 
+### SDK insertion-point diagram
+
+```mermaid
+flowchart LR
+    User[User or caller] --> InputGate
+
+    subgraph Host["Trusted application host"]
+        direction LR
+        InputGate["Purview SDK: input gate<br/>compute protection scopes<br/>processContent: uploadText"]
+        Runtime["Agent runtime<br/>Cursor, Bedrock, Agent Framework,<br/>or Microsoft 365 Agents SDK"]
+        OutputGate["Purview SDK: output gate<br/>processContent: downloadText<br/>before display or downstream action"]
+        Response[Allowed response]
+
+        InputGate -->|allow only| Runtime
+        Runtime --> OutputGate
+        OutputGate -->|allow only| Response
+    end
+
+    Entra["Entra SDK for Agent ID sidecar<br/>authentication boundary"] -->|child Agent Identity Graph token| InputGate
+    Entra -->|child Agent Identity token| A365
+
+    A365["Agent 365 SDK / Microsoft OpenTelemetry<br/>wrap the whole turn: invocation, policy decisions,<br/>inference, errors, and completion"]
+    A365 -. observes .-> InputGate
+    A365 -. observes .-> Runtime
+    A365 -. observes .-> OutputGate
+
+    Response --> User
+
+    style Entra fill:#CFE4FA,stroke:#0078D4,stroke-width:2px
+    style InputGate fill:#FDE7E9,stroke:#D13438,stroke-width:2px
+    style OutputGate fill:#FDE7E9,stroke:#D13438,stroke-width:2px
+    style Runtime fill:#DFF6DD,stroke:#107C10,stroke-width:2px
+    style A365 fill:#E8DAEF,stroke:#5C2D91,stroke-width:2px
+    style Response fill:#99E9F2,stroke:#0C8599,stroke-width:2px
+```
+
+The diagram's editable source is
+[`diagrams/sdk-insertion-points.excalidraw`](diagrams/sdk-insertion-points.excalidraw).
+Open it with the Microsoft internal Excalidraw instance at
+[aka.ms/excalidraw](https://aka.ms/excalidraw).
+
 ## Where each integration happens
 
-1. **Before model execution**
+1. **Entra SDK for Agent ID: authentication boundary**
+   - run the sidecar beside the trusted application host, not inside the model
+   - request a child Agent Identity token immediately before calling Purview or exporting Agent 365 telemetry
+   - keep Blueprint credentials in the sidecar only
+2. **Purview SDK/API: before model execution**
    - `computeProtectionScopes` for the current user
-   - `contentActivities` with `uploadText`
+   - `processContent` with `uploadText`
    - block if policy requires it
-2. **After model execution**
-   - `contentActivities` with `downloadText`
+3. **Purview SDK/API: after model execution**
+   - buffer the complete response, then call `processContent` with `downloadText`
    - block/redact if policy requires it
-3. **Telemetry/reporting**
-   - turn start/end + policy decisions through `Agent365Adapter`
+   - do not display, stream, execute, or forward unapproved output
+4. **Agent 365 SDK: around the complete turn**
+   - initialize Microsoft OpenTelemetry when the trusted host starts
+   - create invocation, guardrail, inference, error, and completion spans
+   - record content only after the corresponding Purview gate allows it
 
 ## Which host SDK am I using?
 

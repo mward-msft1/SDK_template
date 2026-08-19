@@ -25,6 +25,10 @@ The trusted Node.js host performs this sequence:
 7. Print the answer only if Purview allows it.
 8. Export Agent 365 invocation, inference, and guardrail spans.
 
+See the shared
+[SDK insertion-point diagram](../README.md#sdk-insertion-point-diagram) for a
+visual map of the Entra, Purview, Agent 365, and agent-runtime boundaries.
+
 Purview enforcement is in `src/governed-run.ts`, outside the Cursor prompt.
 The model cannot choose to skip it. Output is deliberately not streamed to the
 terminal because streamed text cannot be recalled after a policy block.
