@@ -1,0 +1,44 @@
+{
+  // Merge this beginner-safe baseline into ~/.openclaw/openclaw.json.
+  agents: {
+    defaults: {
+      sandbox: {
+        mode: "all",
+        workspaceAccess: "ro",
+        docker: {
+          network: "none",
+          memory: "512m",
+        },
+      },
+      subagents: {
+        maxConcurrent: 2,
+        maxSpawnDepth: 1,
+        archiveAfterMinutes: 30,
+      },
+    },
+    list: [
+      {
+        id: "governed-work-agent",
+        name: "Governed Work Agent",
+        default: true,
+        workspace: "~/.openclaw/workspace-governed-work-agent",
+        tools: {
+          profile: "minimal",
+          deny: ["exec", "browser", "write_*"],
+        },
+      },
+    ],
+  },
+  tools: {
+    agentToAgent: {
+      enabled: false,
+    },
+  },
+  session: {
+    scope: "per-sender",
+    dmScope: "per-account-channel-peer",
+    agentToAgent: {
+      maxPingPongTurns: 3,
+    },
+  },
+}
