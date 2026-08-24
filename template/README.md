@@ -6,6 +6,7 @@ This is a **beginner template** showing where to interject **Agent365 SDK** and 
 - **Amazon Bedrock** direct model inference (`Converse`)
 - **Amazon Bedrock AgentCore Runtime** with passwordless Entra Agent ID federation
 - **Cursor SDK** local orchestration with mandatory Purview gates
+- **Clawpilot / OpenClaw** orchestration with trusted message and tool gates
 
 You can keep one policy + reporting pattern, then swap host SDKs.
 
@@ -21,6 +22,7 @@ You get both:
 - Rust examples in `rust/`
 - Go examples in `go/`
 - A complete TypeScript Cursor SDK example in `cursor/`
+- A complete Clawpilot integration kit in `clawpilot/`
 
 ## Prerequisites
 
@@ -50,6 +52,7 @@ You get both:
 | Amazon Bedrock (`src/`) | Node.js 20+, AWS SDK credentials, Bedrock model access |
 | Amazon Bedrock AgentCore (`bedrock/agentcore/`) | Python, AgentCore CLI, authenticated AWS deployment access |
 | Cursor (`cursor/`) | Node.js 22.13+, Cursor API key |
+| Clawpilot (`clawpilot/`) | Node.js 22.12+, a Claw-Pilot or OpenClaw installation |
 | Entra sidecar | Docker Desktop with Compose v2 |
 
 ## One-time setup for all templates
@@ -87,6 +90,10 @@ For a ready-to-run Cursor host that already uses the current Agent 365
 OpenTelemetry package and enforces Purview before and after every Cursor run,
 follow [`cursor/README.md`](cursor/README.md).
 
+For Claw-Pilot trusted middleware and tool hooks, or for secure installation of
+the OpenClaw Clawpilot Agent Skill, follow
+[`clawpilot/README.md`](clawpilot/README.md).
+
 ## Beginner mental model (simple)
 
 Think of each message as a pipeline:
@@ -107,7 +114,7 @@ flowchart LR
     subgraph Host["Trusted application host"]
         direction LR
         InputGate["Purview SDK: input gate<br/>compute protection scopes<br/>processContent: uploadText"]
-        Runtime["Agent runtime<br/>Cursor, Bedrock, Agent Framework,<br/>or Microsoft 365 Agents SDK"]
+        Runtime["Agent runtime<br/>Cursor, Bedrock, Clawpilot, Agent Framework,<br/>or Microsoft 365 Agents SDK"]
         OutputGate["Purview SDK: output gate<br/>processContent: downloadText<br/>before display or downstream action"]
         Response[Allowed response]
 
