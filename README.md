@@ -60,6 +60,274 @@ evaluation fails, do not invoke the model, execute the tool, or release the
 output. The detailed insertion-point diagram and editable Excalidraw source are
 in [`template/README.md`](template/README.md#sdk-insertion-point-diagram).
 
+## Copy-paste SDK examples
+
+### Agent 365 SDK: observe the governed turn
+
+Install the current Node.js packages:
+
+```bash
+npm install @microsoft/opentelemetry @opentelemetry/resources
+```
+
+The example below assumes it is running from `template/clawpilot/`, where the
+included Entra sidecar client is available. Initialize telemetry once at host
+startup, start one invocation scope per turn, and record prompt/response content
+only after the matching Purview gate allows it.
+
+```typescript
+import {
+  ApplyGuardrailScope,
+  GuardrailDecisionType,
+  GuardrailTargetType,
+  InvokeAgentScope,
+  shutdownMicrosoftOpenTelemetry,
+  useMicrosoftOpenTelemetry
+} from "@microsoft/opentelemetry";
+import type {
+  A365Request,
+  AgentDetails
+} from "@microsoft/opentelemetry";
+import { EntraSidecarClient } from "./src/entra-sidecar.js";
+
+const required = (name: string): string => {
+  const value = process.env[name]?.trim();
+  if (!value) throw new Error(`Set ${name} before starting the agent.`);
+  return value;
+};
+
+const sidecar = new EntraSidecarClient(
+  process.env.ENTRA_SIDECAR_URL ?? "http://localhost:5000",
+  required("AGENT_CLIENT_ID")
+);
+
+useMicrosoftOpenTelemetry({
+  a365: {
+    enabled: true,
+    useS2SEndpoint: true,
+    tokenResolver: async () =>
+      sidecar.getAccessToken(
+        process.env.ENTRA_AGENT365_SERVICE_NAME ?? "Agent365"
+      )
+  }
+});
+
+const agentDetails: AgentDetails = {
+  agentId: required("AGENT_CLIENT_ID"),
+  agentName: required("AGENT_NAME"),
+  agentDescription: required("AGENT_DESCRIPTION"),
+  agentBlueprintId: required("BLUEPRINT_APP_ID"),
+  tenantId: required("TENANT_ID"),
+  providerName: "Your agent host"
+};
+
+export async function runObservedTurn(options: {
+  prompt: string;
+  turnId: string;
+  purviewAllowsInput: () => Promise<boolean>;
+  invokeAgent: () => Promise<string>;
+  purviewAllowsOutput: (output: string) => Promise<boolean>;
+}): Promise<string> {
+  const request: A365Request = {
+    sessionId: options.turnId,
+    conversationId: options.turnId,
+    channel: { name: "custom-agent" }
+  };
+  const scope = InvokeAgentScope.start(request, {}, agentDetails);
+
+  try {
+    return await scope.withActiveSpanAsync(async () => {
+      const observePurview = async (
+        targetType: GuardrailTargetType,
+        evaluate: () => Promise<boolean>
+      ): Promise<boolean> => {
+        const guardrail = ApplyGuardrailScope.start(
+          {
+            targetType,
+            decisionType: GuardrailDecisionType.Allow,
+            guardianName: "Microsoft Purview",
+            guardianProviderName: "Microsoft",
+            externalEventId: options.turnId
+          },
+          agentDetails,
+          request
+        );
+        try {
+          const allowed = await evaluate();
+          guardrail.recordDecision(
+            allowed
+              ? GuardrailDecisionType.Allow
+              : GuardrailDecisionType.Deny
+          );
+          return allowed;
+        } catch (error) {
+          guardrail.recordError(
+            error instanceof Error ? error : new Error(String(error))
+          );
+          throw error;
+        } finally {
+          guardrail.dispose();
+        }
+      };
+
+      if (
+        !(await observePurview(
+          GuardrailTargetType.LlmInput,
+          options.purviewAllowsInput
+        ))
+      ) {
+        throw new Error("Purview blocked the input.");
+      }
+      scope.recordInputMessages([options.prompt]);
+
+      const output = await options.invokeAgent();
+      if (
+        !(await observePurview(GuardrailTargetType.LlmOutput, () =>
+          options.purviewAllowsOutput(output)
+        ))
+      ) {
+        throw new Error("Purview blocked the output.");
+      }
+      scope.recordOutputMessages([output]);
+      return output;
+    });
+  } catch (error) {
+    scope.recordError(
+      error instanceof Error ? error : new Error(String(error))
+    );
+    throw error;
+  } finally {
+    scope.dispose();
+  }
+}
+
+// Register this function with your host's graceful-shutdown handler.
+export async function shutdownObservability(): Promise<void> {
+  await shutdownMicrosoftOpenTelemetry();
+}
+```
+
+For production observability, also create `InferenceScope` and
+`ExecuteToolScope` spans around model and tool operations. See the official
+[Microsoft OpenTelemetry manual instrumentation
+guide](https://learn.microsoft.com/microsoft-agent-365/developer/microsoft-opentelemetry#manual-instrumentation).
+
+### Purview SDK: Microsoft Agent Framework middleware
+
+For Python Agent Framework applications, install the native middleware:
+
+```bash
+pip install agent-framework azure-identity
+```
+
+```python
+import asyncio
+import os
+
+from agent_framework import Agent, Message
+from agent_framework.microsoft import PurviewPolicyMiddleware, PurviewSettings
+from agent_framework.openai import OpenAIChatCompletionClient
+from azure.identity import AzureCliCredential, InteractiveBrowserCredential
+
+
+def required(name: str) -> str:
+    value = os.environ.get(name, "").strip()
+    if not value:
+        raise RuntimeError(f"Set {name} before starting the agent.")
+    return value
+
+
+async def main() -> None:
+    chat_client = OpenAIChatCompletionClient(
+        model=required("AZURE_OPENAI_CHAT_COMPLETION_MODEL"),
+        azure_endpoint=required("AZURE_OPENAI_ENDPOINT"),
+        credential=AzureCliCredential(),
+    )
+
+    purview = PurviewPolicyMiddleware(
+        credential=InteractiveBrowserCredential(
+            client_id=required("PURVIEW_CLIENT_APP_ID")
+        ),
+        settings=PurviewSettings(app_name=required("AGENT_NAME")),
+    )
+
+    agent = Agent(
+        client=chat_client,
+        instructions="You are a secure assistant.",
+        middleware=[purview],
+    )
+
+    response = await agent.run(
+        Message(role="user", contents=["Summarize zero trust in one sentence."])
+    )
+    print(response)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+`InteractiveBrowserCredential` and `AzureCliCredential` are convenient local
+development credentials. Use a deliberately selected managed identity,
+workload identity, certificate, or Agent ID flow in production. See
+[Use Microsoft Purview SDK with Agent
+Framework](https://learn.microsoft.com/agent-framework/tutorials/plugins/use-purview-with-agent-framework-sdk).
+
+### Purview API client: TypeScript custom runtimes
+
+Bedrock, Cursor, Claw-Pilot, and other custom hosts can use the included Graph
+client. This example also runs from `template/clawpilot/`:
+
+```typescript
+import { loadGovernanceConfig } from "./src/config.js";
+import { EntraSidecarClient } from "./src/entra-sidecar.js";
+import { PurviewClient } from "./src/purview-client.js";
+
+const config = loadGovernanceConfig();
+const sidecar = new EntraSidecarClient(
+  config.entraSidecarUrl,
+  config.agentClientId
+);
+const purview = new PurviewClient(config, sidecar);
+
+async function requirePurviewAllow(
+  activity: "uploadText" | "downloadText",
+  content: string,
+  correlationId: string
+): Promise<void> {
+  const decision = await purview.evaluate(activity, content, correlationId);
+  if (decision.block) {
+    throw new Error(`Purview blocked ${activity}.`);
+  }
+}
+
+export async function runGovernedAgent(
+  prompt: string,
+  invokeAgent: () => Promise<string>
+): Promise<string> {
+  const correlationId = crypto.randomUUID();
+
+  // Compute after authentication and cache the returned ETag.
+  await purview.computeProtectionScopes();
+
+  // Input gate: do not invoke the model until this returns allow.
+  await requirePurviewAllow("uploadText", prompt, correlationId);
+  const output = await invokeAgent();
+
+  // Output gate: do not stream, display, forward, or execute this output yet.
+  await requirePurviewAllow("downloadText", output, correlationId);
+  return output;
+}
+```
+
+The included client caches the `ETag`, sends it as `If-None-Match`, and
+recomputes scopes when `protectionScopeState` is `modified`. A production host
+must also inspect and enforce every returned `policyAction`, apply the most
+restrictive applicable scope, refresh scopes periodically, and block
+agent-to-agent calls before execution when Purview returns `restrictAccess`.
+See the official [Purview API
+tutorial](https://learn.microsoft.com/purview/developer/use-the-api).
+
 ## Template contents
 
 - `template/.env.example` - tenant/app placeholders required to activate integrations.
