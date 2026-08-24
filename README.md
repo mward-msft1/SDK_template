@@ -20,6 +20,46 @@ Use `template/README.md` as the source of truth for:
 2. Required local toolchains for JS, Python, C++, .NET, Rust, and Go.
 3. Step-by-step setup and run instructions for each language template.
 
+## When and where to insert each SDK
+
+Insert the SDKs in the **trusted application host**, not in the system prompt,
+agent instructions, model, tool description, or Agent Skill. The host must own
+authentication, policy enforcement, telemetry, and the final decision to call
+the model or return content.
+
+| SDK or integration | When it runs | Where it belongs in the agent framework | Template starting point |
+|---|---|---|---|
+| **Microsoft Agent Framework** | For the actual agent/model turn | Inside the `next(context)` function, between the Purview input and output gates | `template/src/framework/hostAdapters.js` |
+| **Microsoft 365 Agents SDK** | When receiving and replying to channel activities | At the outer channel/activity handler; convert the activity to the shared turn context, call the governed middleware, then send only its allowed result | `template/src/framework/hostAdapters.js` |
+| **Microsoft Entra Agent ID SDK sidecar** | Just before a protected downstream API needs a token | Beside the trusted host as the authentication boundary; the host calls it for short-lived child Agent Identity tokens | `template/src/integrations/entraSidecarClient.js` and `template/entra-sidecar/` |
+| **Microsoft Purview API** | Before inference, before tool/A2A effects, and after inference | In host middleware and pre-tool hooks: `uploadText` gates input; `downloadText` gates complete output and outbound payloads | `template/src/integrations/purviewAdapter.js` |
+| **Agent 365 SDK / Microsoft OpenTelemetry** | From host startup through completion of every turn | Initialize once before the runtime starts; wrap invocation, Purview decisions, inference, tools, errors, and completion in telemetry scopes | `template/src/integrations/agent365Adapter.js` |
+| **Amazon Bedrock Runtime** | Only after the input gate allows the request | In the model invocation slot represented by `next(context)`; return the complete response to the output gate | `template/src/integrations/bedrockAdapter.js` |
+| **Amazon Bedrock AgentCore federation** | When AgentCore, rather than the local host, authenticates to Entra | At the AgentCore runtime identity boundary; it replaces the local sidecar path but does not replace Purview or Agent 365 | `template/bedrock/agentcore/` |
+| **Cursor SDK** | Only after the input gate allows a local coding task | Inside the governed run; buffer the completed Cursor result before the Purview output gate | `template/cursor/` |
+| **Claw-Pilot / OpenClaw** | On inbound messages, before tool/A2A execution, and before outbound delivery | Use trusted runtime middleware for messages and a decision-aware plugin hook for tools; do not rely on `SKILL.md` for enforcement | `template/clawpilot/` |
+
+### Required order for every agent turn
+
+1. The host receives the request and creates a turn/correlation ID.
+2. Agent 365 starts the invocation scope.
+3. The host asks the Entra Agent ID sidecar for the token needed by Purview.
+4. Purview computes protection scopes and evaluates the input with
+   `processContent` and `uploadText`.
+5. Only an allowed request reaches Agent Framework, Bedrock, Cursor, or another
+   model runtime.
+6. Before any tool or agent-to-agent call causes an external effect, Purview
+   evaluates the serialized destination and payload.
+7. The host buffers the complete model response.
+8. Purview evaluates the response with `processContent` and `downloadText`.
+9. Only allowed output is sent to the user, channel, tool, or downstream agent.
+10. Agent 365 records completion or error and closes the invocation scope.
+
+The default should be **fail closed**: if token acquisition or Purview
+evaluation fails, do not invoke the model, execute the tool, or release the
+output. The detailed insertion-point diagram and editable Excalidraw source are
+in [`template/README.md`](template/README.md#sdk-insertion-point-diagram).
+
 ## Template contents
 
 - `template/.env.example` - tenant/app placeholders required to activate integrations.
@@ -32,7 +72,7 @@ Use `template/README.md` as the source of truth for:
 - `template/src/framework/agentMiddlewareTemplate.js` - generic middleware that interjects Purview + Agent365 into an agent turn.
 - `template/src/framework/hostAdapters.js` - where to connect the middleware to Agent Framework **or** Microsoft 365 Agents SDK containers.
 - `template/src/integrations/agent365Adapter.js` - Agent365 SDK insertion points.
-- `template/src/integrations/purviewAdapter.js` - Purview Graph calls for `protectionScopes/compute` and `contentActivities`.
+- `template/src/integrations/purviewAdapter.js` - Purview Graph calls for `protectionScopes/compute` and `processContent`.
 - `template/src/integrations/entraSidecarClient.js` - gets Graph authorization headers from the local Entra Agent ID sidecar.
 - `template/entra-sidecar/` - Docker Compose and detailed beginner instructions for autonomous and OBO agents.
 - `template/src/integrations/bedrockAdapter.js` - Amazon Bedrock Runtime `Converse` integration.
