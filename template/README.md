@@ -7,6 +7,7 @@ This is a **beginner template** showing where to interject **Agent365 SDK** and 
 - **Amazon Bedrock AgentCore Runtime** with passwordless Entra Agent ID federation
 - **Cursor SDK** local orchestration with mandatory Purview gates
 - **Clawpilot / OpenClaw** orchestration with trusted message and tool gates
+- **Agent 365 CLI and SDK** blueprint provisioning and runtime observability
 
 You can keep one policy + reporting pattern, then swap host SDKs.
 
@@ -23,6 +24,7 @@ You get both:
 - Go examples in `go/`
 - A complete TypeScript Cursor SDK example in `cursor/`
 - A complete Clawpilot integration kit in `clawpilot/`
+- A complete Agent 365 CLI and SDK onboarding kit in `agent365/`
 
 ## Prerequisites
 
@@ -53,6 +55,7 @@ You get both:
 | Amazon Bedrock AgentCore (`bedrock/agentcore/`) | Python, AgentCore CLI, authenticated AWS deployment access |
 | Cursor (`cursor/`) | Node.js 22.13+, Cursor API key |
 | Clawpilot (`clawpilot/`) | Node.js 22.12+, a Claw-Pilot or OpenClaw installation |
+| Agent 365 CLI (`agent365/`) | .NET 8+, Azure CLI, Node.js 22+, Agent 365-enabled tenant |
 | Entra sidecar | Docker Desktop with Compose v2 |
 
 ## One-time setup for all templates
@@ -93,6 +96,10 @@ follow [`cursor/README.md`](cursor/README.md).
 For Claw-Pilot trusted middleware and tool hooks, or for secure installation of
 the OpenClaw Clawpilot Agent Skill, follow
 [`clawpilot/README.md`](clawpilot/README.md).
+
+For complete CLI installation, blueprint creation, generated configuration
+import, SDK package installation, and runnable observability wiring, follow
+[`agent365/README.md`](agent365/README.md).
 
 ## Beginner mental model (simple)
 
