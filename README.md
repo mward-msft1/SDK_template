@@ -10,6 +10,7 @@ A **beginner-friendly, agnostic agent template** showing how to inject:
 7. **Amazon Bedrock AgentCore Runtime** passwordless federation to Entra Agent ID
 8. **Cursor SDK** local agent orchestration with enforced Purview and Agent 365 telemetry
 9. **Clawpilot / OpenClaw** trusted middleware, tool enforcement, and secure Agent Skill guidance
+10. **Agent 365 CLI and SDK** blueprint provisioning, configuration import, and complete observability wiring
 
 The goal is to give you a portable starter you can adapt to Python, .NET, or Node runtimes while keeping all tenant-bound values as explicit placeholders.
 
@@ -348,6 +349,7 @@ tutorial](https://learn.microsoft.com/purview/developer/use-the-api).
 - `template/bedrock/agentcore/` - AgentCore Runtime, IAM, Strands, and two-stage Entra workload federation template.
 - `template/cursor/` - complete local Cursor SDK example with fail-closed Purview input/output gates and the Microsoft OpenTelemetry Distro for Agent 365.
 - `template/clawpilot/` - complete Claw-Pilot middleware/plugin framework plus OpenClaw Agent Skill security guidance.
+- `template/agent365/` - complete A365 CLI blueprint setup, safe configuration import, SDK installation, and runnable observability example.
 - `template/src/exampleRunner.js` - runnable skeleton showing wire-up.
 - `template/purview/Create-DlpPolicyForCustomAIApps.template.ps1` - tenant DLP policy bootstrap placeholders.
 
@@ -365,6 +367,7 @@ tutorial](https://learn.microsoft.com/purview/developer/use-the-api).
    instead of the local sidecar path.
    For Cursor, use `template/cursor/README.md`.
    For Clawpilot or OpenClaw, use `template/clawpilot/README.md`.
+   For Agent 365 CLI blueprint onboarding, use `template/agent365/README.md`.
 6. Replace TODO blocks in:
    - `template/src/framework/hostAdapters.js`
    - `template/src/integrations/agent365Adapter.js`
